@@ -45,6 +45,19 @@ export default {
     }
     return worker.fetch(request, env, ctx);
   },
+  // Nightly at 21:00 UTC, which is midnight in Nairobi. Calls the backup route with the cron secret and
+  // leaves a note in KV (cron/last-run, cron/last-result, cron/last-error) so a silent failure can be found.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil((async () => {
+      try {
+        await env.BACKUPS.put("cron/last-run", new Date().toISOString());
+        const res = await worker.fetch(new Request("https://kingdom-hospital.internal/api/backup", { method: "POST", headers: { "content-type": "application/json", "x-cron-secret": env.CRON_SECRET || "" }, body: "{}" }), env, ctx);
+        await env.BACKUPS.put("cron/last-result", res.status + " " + (await res.text()).slice(0, 500));
+      } catch (e) {
+        await env.BACKUPS.put("cron/last-error", String((e && e.stack) || e).slice(0, 1500));
+      }
+    })());
+  },
 };
 `);
 console.log(`Embedded ${files.length} static files.`);

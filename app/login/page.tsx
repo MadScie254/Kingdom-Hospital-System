@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
@@ -59,7 +60,8 @@ export default function Login() {
           </div>
           {error && <p className="mt-4 rounded-md bg-bad-50 px-3 py-2 text-[13px] text-bad" role="alert">{error}</p>}
           <button className="btn btn-primary mt-6 h-10 w-full" disabled={busy}>{busy ? "Signing in" : "Sign in"}</button>
-          <p className="mt-6 text-xs leading-relaxed text-muted">Patient records are confidential. Every change is logged against your name.</p>
+          <p className="mt-6 text-center text-[13px] text-muted">New to the hospital? <Link href="/signup" className="font-medium text-brand hover:underline">Request access</Link></p>
+          <p className="mt-3 text-center text-xs leading-relaxed text-muted">Forgot your password? Ask the administrator to reset it. Patient records are confidential and every change is logged against your name.</p>
         </form>
       </section>
     </div>

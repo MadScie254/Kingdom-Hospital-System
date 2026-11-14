@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { db, useDB, useUser } from "@/lib/store";
 import { Field, PageHeader, toast } from "@/components/ui";
-import { StaffAccounts } from "@/components/users";
+import { Backups } from "@/components/backups";
 import { download } from "@/lib/format";
 
 const GROUPS: { title: string; hint: string; fields: [string, string, string?][] }[] = [
@@ -34,7 +34,7 @@ export default function Settings() {
 
   return (
     <div>
-      <PageHeader title="Settings" description={admin ? "Hospital details, payment instructions, staff accounts and data tools." : "Your account. Hospital settings can only be changed by an administrator."}
+      <PageHeader title="Settings" description={admin ? "Hospital details, payment instructions, backups and data tools." : "Your account. Hospital settings can only be changed by an administrator."}
         actions={admin && <button className="btn btn-primary" onClick={save}>Save settings</button>} />
       <div className="space-y-5">
         {admin && GROUPS.map((g) => (
@@ -43,7 +43,6 @@ export default function Settings() {
             <div className="grid gap-4 sm:grid-cols-2">{g.fields.map(([k, l, t]) => <Field key={k} label={l}><input className="input" type={t || "text"} value={v[k] ?? ""} onChange={(e) => setV({ ...v, [k]: e.target.value })} /></Field>)}</div>
           </section>
         ))}
-        {admin && user && <StaffAccounts selfId={user.id} />}
         <section className="card grid gap-6 p-6 lg:grid-cols-[240px_1fr]">
           <div><h2 className="card-title">Change my password</h2><p className="mt-1 text-[13px] text-muted">Use at least 10 characters. Do not share it.</p></div>
           <div className="grid max-w-xl gap-4 sm:grid-cols-2">
@@ -54,6 +53,7 @@ export default function Settings() {
             <div className="sm:col-span-2"><button className="btn btn-primary" onClick={changePassword}>Change password</button></div>
           </div>
         </section>
+        {admin && <Backups />}
         {admin && (
           <section className="card grid gap-6 p-6 lg:grid-cols-[240px_1fr]">
             <div><h2 className="card-title">Data</h2><p className="mt-1 text-[13px] text-muted">Records are stored in the hospital database. Download a copy at any time.</p></div>

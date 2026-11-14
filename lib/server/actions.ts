@@ -1,6 +1,6 @@
 import { invoiceTotals, statusFor } from "../billing";
 import type { Session } from "./auth";
-import { audit, auditLast, NOW_EAT, TODAY_EAT, rowOf, rowsOf, type Sql } from "./db";
+import { audit, auditLast, guard, NOW_EAT, TODAY_EAT, rowOf, rowsOf, type Sql } from "./db";
 import { HttpError } from "./http";
 
 export type Out = { changes: Record<string, any[]>; result?: any };
@@ -44,8 +44,8 @@ const invoiceCreate: Action = async (s, u, b) => {
   const inv = { ...f.base, paid, status: draft ? "Draft" : statusFor(f.totals.total, paid) };
   const labIds: number[] = !draft && Array.isArray(b.labTestIds) ? b.labTestIds.map(Number).filter(Number.isInteger).slice(0, 50) : [];
   const NO = `'INV' || lpad(currval('invoice_no_seq')::text, 4, '0')`;
-  const names: string[] = ["invoices"];
-  const qs = [s.query(`insert into invoices (data) values ($1::jsonb || jsonb_build_object('no', 'INV' || lpad(nextval('invoice_no_seq')::text, 4, '0'))) returning id, data`, [JSON.stringify(inv)])];
+  const names: string[] = ["__guard", "invoices"];
+  const qs = [guard(s, u), s.query(`insert into invoices (data) values ($1::jsonb || jsonb_build_object('no', 'INV' || lpad(nextval('invoice_no_seq')::text, 4, '0'))) returning id, data`, [JSON.stringify(inv)])];
   if (paid > 0) {
     names.push("payments");
     qs.push(s.query(`insert into payments (data) values (jsonb_build_object('invoiceNo', ${NO}, 'patientId', $1::int, 'date', ${TODAY_EAT}, 'amount', $2::numeric, 'method', $3::text, 'reference', $4::text)) returning id, data`, [inv.patientId, paid, inv.method, str(b.reference, 60) || (inv.method === "Cash" ? "Counter receipt" : "Not recorded")]));
@@ -62,7 +62,7 @@ const invoiceCreate: Action = async (s, u, b) => {
   qs.push(s.query(`insert into audit_log (actor, action, collection, record_id) values ($1, 'invoice.create', 'invoices', 'INV' || lpad(currval('invoice_no_seq')::text, 4, '0'))`, [u.email]));
   const res = await s.transaction(qs);
   const changes: Record<string, any[]> = {};
-  names.forEach((n, i) => (changes[n] = rowsOf(res[i])));
+  names.forEach((n, i) => { if (n !== "__guard") changes[n] = rowsOf(res[i]); });
   void audited;
   return { changes, result: { no: changes.invoices[0].no } };
 };
@@ -74,7 +74,8 @@ const invoiceUpdate: Action = async (s, u, b) => {
   if (!cur) throw new HttpError(404, "Invoice not found.");
   const paid = Number(cur.data.paid) || 0;
   const patch = { ...f.base, status: b.draft ? "Draft" : statusFor(f.totals.total, paid) };
-  const [rows] = await s.transaction([
+  const [, rows] = await s.transaction([
+    guard(s, u),
     s.query(`update invoices set data = data || $1::jsonb, updated_at = now() where id = $2 returning id, data`, [JSON.stringify(patch), cur.id]),
     audit(s, u.email, "invoice.update", "invoices", cur.id),
   ]);
@@ -87,7 +88,8 @@ const paymentRecord: Action = async (s, u, b) => {
   if (!Number.isFinite(amount) || amount <= 0) throw new HttpError(400, "Enter an amount above zero.");
   const method = str(b.method, 30) || "Cash";
   const reference = str(b.reference, 60) || (method === "Cash" ? "Counter receipt" : "Not recorded");
-  const [rows] = await s.transaction([
+  const [, rows] = await s.transaction([
+    guard(s, u),
     s.query(
       `with inv as (
          select id, data, invoice_total(data) as total, coalesce((data->>'paid')::numeric, 0) as paid
@@ -115,7 +117,8 @@ const paymentRecord: Action = async (s, u, b) => {
 
 const admit: Action = async (s, u, b) => {
   const bedId = int(b.bedId, "bed"), patientId = int(b.patientId, "patient"), doctorId = int(b.doctorId, "doctor");
-  const [adm, bed] = await s.transaction([
+  const [, adm, bed] = await s.transaction([
+    guard(s, u),
     s.query(`insert into admissions (data) select jsonb_build_object('bedId', $1::int, 'patientId', $2::int, 'doctorId', $3::int, 'admittedAt', ${NOW_EAT}, 'dischargedAt', '', 'diagnosis', $4::text, 'status', 'Admitted', 'due', 0) from beds b where b.id = $1 and b.data->>'status' = 'Available' returning id, data`, [bedId, patientId, doctorId, str(b.diagnosis, 300) || "Under assessment"]),
     s.query(`update beds set data = data || jsonb_build_object('status', 'Occupied', 'patientId', $2::int), updated_at = now() where id = $1 and data->>'status' = 'Available' returning id, data`, [bedId, patientId]),
     audit(s, u.email, "admission.admit", "admissions", bedId),
@@ -126,7 +129,8 @@ const admit: Action = async (s, u, b) => {
 
 const transfer: Action = async (s, u, b) => {
   const admissionId = int(b.admissionId, "admission"), toBedId = int(b.toBedId, "bed");
-  const [rows] = await s.transaction([
+  const [, rows] = await s.transaction([
+    guard(s, u),
     s.query(
       `with a as (select id, data from admissions where id = $1 and data->>'status' = 'Admitted' for update),
        nb as (update beds set data = data || jsonb_build_object('status', 'Occupied', 'patientId', (select (data->>'patientId')::int from a)), updated_at = now()
@@ -147,7 +151,8 @@ const transfer: Action = async (s, u, b) => {
 
 const discharge: Action = async (s, u, b) => {
   const admissionId = int(b.admissionId, "admission");
-  const [rows] = await s.transaction([
+  const [, rows] = await s.transaction([
+    guard(s, u),
     s.query(
       `with a as (update admissions set data = data || jsonb_build_object('status', 'Discharged', 'dischargedAt', ${NOW_EAT}), updated_at = now()
                   where id = $1 and data->>'status' = 'Admitted' returning id, data),
@@ -181,7 +186,8 @@ const pharmacySale: Action = async (s, u, b) => {
   const merged = new Map<number, number>();
   lines.forEach((l: any) => { const id = int(l?.medicineId, "medicine"); merged.set(id, (merged.get(id) || 0) + int(l?.qty, "quantity")); });
   const payload = [...merged].map(([medicineId, qty]) => ({ medicineId, qty }));
-  const [rows] = await s.transaction([
+  const [, rows] = await s.transaction([
+    guard(s, u),
     s.query(
       `with req as (select (l->>'medicineId')::int as id, (l->>'qty')::int as qty from jsonb_array_elements($1::jsonb) l),
        upd as (update medicines m set data = jsonb_set(m.data, '{quantity}', to_jsonb((m.data->>'quantity')::int - req.qty)), updated_at = now()

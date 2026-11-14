@@ -1,9 +1,6 @@
 import { COLLECTIONS, type CollectionName } from "../collections";
 import { HttpError } from "./http";
 
-/** Collections only an administrator may change. Everyone signed in may read all collections. */
-export const ADMIN_WRITE = new Set<CollectionName>(["settings", "staff", "nurses", "attendance", "expenses", "templates", "services", "labCatalog", "doctors", "departments"]);
-
 /** Numbers handed out by the database, never accepted from the browser. */
 export const AUTO_NUMBER: Partial<Record<CollectionName, { key: string; sql: string }>> = {
   patients: { key: "mrn", sql: `'KH' || nextval('patient_mrn_seq')` },

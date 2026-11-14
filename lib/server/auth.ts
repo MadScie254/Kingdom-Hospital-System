@@ -1,8 +1,10 @@
+import type { Role } from "../access";
+
 const enc = new TextEncoder();
 const COOKIE = "kh_session";
 const MAX_AGE = 12 * 3600;
 
-export type Session = { uid: number; email: string; name: string; role: "admin" | "staff"; exp: number };
+export type Session = { uid: number; email: string; name: string; role: Role; exp: number };
 
 const b64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const fromB64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));

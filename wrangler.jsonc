@@ -5,6 +5,8 @@
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "rules": [{ "type": "Data", "globs": ["**/embedded/*"], "fallthrough": false }],
+  "kv_namespaces": [{ "binding": "BACKUPS", "id": "d7089e829bec4b23a39c7459d736a454" }],
+  "triggers": { "crons": ["0 21 * * *"] },
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true }

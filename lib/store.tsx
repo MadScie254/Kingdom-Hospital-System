@@ -2,15 +2,17 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { toast } from "@/components/ui";
 import { api, ApiError } from "./api";
+import type { Role } from "./access";
 import { emptyDB, type CollectionName, type DB, type Row } from "./collections";
 
-export type User = { id: number; email: string; name: string; role: "admin" | "staff" };
+export type User = { id: number; email: string; name: string; role: Role; departments: number[]; position?: string | null; mustChange?: boolean };
 type Status = "loading" | "ready" | "unauth" | "error";
 
 const EMPTY = emptyDB();
 let state: DB = EMPTY;
 let status: Status = "loading";
 let me: User | null = null;
+let pending = 0;
 let loadedAt = 0;
 let inflight: Promise<void> | null = null;
 const listeners = new Set<() => void>();
@@ -21,14 +23,16 @@ export const useDB = (): DB => useSyncExternalStore(subscribe, () => state, () =
 export const useCollection = <K extends CollectionName>(name: K): DB[K] => useDB()[name];
 export const useStatus = (): Status => useSyncExternalStore(subscribe, () => status, () => "loading" as Status);
 export const useUser = (): User | null => useSyncExternalStore(subscribe, () => me, () => null);
+export const usePending = (): number => useSyncExternalStore(subscribe, () => pending, () => 0);
 
 export function loadAll(): Promise<void> {
   if (inflight) return inflight;
   inflight = (async () => {
     try {
-      const r = await api<{ user: User; data: DB }>("/api/data");
+      const r = await api<{ user: User; data: DB; pending?: number }>("/api/data");
       state = { ...emptyDB(), ...r.data };
       me = r.user;
+      pending = r.pending || 0;
       status = "ready";
       loadedAt = Date.now();
     } catch (e) {

@@ -54,11 +54,12 @@ async function seed() {
 
 async function admin() {
   const email = flags.find((f) => !f.startsWith("--")) || "kingdomfaithbasedhospital@gmail.com";
+  const name = (flags.find((f) => f.startsWith("--name=")) || "--name=Hospital Administrator").slice(7);
   const password = randomBytes(18).toString("base64").replace(/[^A-Za-z0-9]/g, "").slice(0, 14);
   const rows = flags.includes("--reset")
-    ? await sql.query(`update app_users set password_hash = crypt($2, gen_salt('bf', 10)), active = true where lower(email) = lower($1) returning id`, [email, password])
-    : await sql.query(`insert into app_users (email, name, role, password_hash) values ($1, 'Hospital Administrator', 'admin', crypt($2, gen_salt('bf', 10))) on conflict (lower(email)) do nothing returning id`, [email, password]);
-  console.log(rows.length ? `Administrator ${email} password: ${password}` : `${email} already exists. Add --reset to set a new password.`);
+    ? await sql.query(`update app_users set password_hash = crypt($2, gen_salt('bf', 10)), active = true, status = 'active', must_change = true where lower(email) = lower($1) returning id`, [email, password])
+    : await sql.query(`insert into app_users (email, name, role, password_hash, must_change) values ($1, $3, 'admin', crypt($2, gen_salt('bf', 10)), true) on conflict (lower(email)) do nothing returning id`, [email, password, name]);
+  console.log(rows.length ? `Administrator ${email} temporary password: ${password}` : `${email} already exists. Add --reset to set a new temporary password.`);
 }
 
 async function clear() {

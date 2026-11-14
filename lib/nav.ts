@@ -1,4 +1,5 @@
-import { Activity, Ambulance, BarChart3, BedDouble, Building2, CalendarDays, ClipboardList, FlaskConical, HeartPulse, LayoutDashboard, Mail, Pill, Receipt, Settings, ShieldCheck, Siren, Stethoscope, Users, UserCog, Package, Smile, ScanLine, type LucideIcon } from "lucide-react";
+import { canOpen, type Role } from "./access";
+import { Activity, Ambulance, BarChart3, BedDouble, Building2, CalendarDays, ClipboardList, FlaskConical, HeartPulse, LayoutDashboard, Mail, Pill, Receipt, Settings, ShieldCheck, Siren, Stethoscope, Users, UserCog, Package, Smile, ScanLine, UserCheck, type LucideIcon } from "lucide-react";
 
 export type NavItem = { label: string; href: string; icon: LucideIcon; children?: { label: string; href: string }[] };
 export type NavGroup = { heading: string; items: NavItem[] };
@@ -52,11 +53,16 @@ export const NAV: NavGroup[] = [
     heading: "Administration",
     items: [
       { label: "Human resources", href: "/hr", icon: UserCog, children: [{ label: "Staff", href: "/hr" }, { label: "Nurses", href: "/hr/nurses" }, { label: "Attendance", href: "/hr/attendance" }] },
+      { label: "Staff accounts", href: "/staff", icon: UserCheck },
       { label: "Communications", href: "/communications", icon: Mail },
       { label: "Settings", href: "/settings", icon: Settings },
     ],
   },
 ];
+
+export function visibleNav(role: Role | undefined): NavGroup[] {
+  return NAV.map((g) => ({ ...g, items: g.items.filter((i) => canOpen(role, i.href)) })).filter((g) => g.items.length);
+}
 
 export const ALL_HREFS = NAV.flatMap((g) => g.items.flatMap((i) => [i.href, ...(i.children || []).map((c) => c.href)]));
 export function bestMatch(pathname: string): string {

@@ -63,3 +63,36 @@ create table if not exists audit_log (
   actor text not null, action text not null, collection text, record_id text
 );
 create index if not exists audit_log_at_idx on audit_log (at desc);
+
+-- Staff signup requests, roles and departments
+alter table app_users add column if not exists status text not null default 'active';
+alter table app_users add column if not exists phone text;
+alter table app_users add column if not exists position text;
+alter table app_users add column if not exists licence text;
+alter table app_users add column if not exists departments integer[] not null default '{}';
+alter table app_users add column if not exists requested_role text;
+alter table app_users add column if not exists requested_at timestamptz not null default now();
+alter table app_users add column if not exists approved_by text;
+alter table app_users add column if not exists approved_at timestamptz;
+alter table app_users add column if not exists signup_ip text;
+alter table app_users drop constraint if exists app_users_role_check;
+alter table app_users add constraint app_users_role_check check (role in ('admin', 'doctor', 'nurse', 'lab', 'pharmacy', 'reception', 'accounts', 'staff'));
+alter table app_users drop constraint if exists app_users_status_check;
+alter table app_users add constraint app_users_status_check check (status in ('pending', 'active', 'declined'));
+create index if not exists app_users_status_idx on app_users (status);
+create index if not exists app_users_signup_ip_idx on app_users (signup_ip, requested_at);
+
+-- Nightly backup history
+create table if not exists backup_log (
+  id serial primary key,
+  at timestamptz not null default now(),
+  ok boolean not null,
+  trigger text not null,
+  tables integer,
+  rows integer,
+  bytes integer,
+  note text
+);
+
+-- Temporary passwords must be replaced at first sign in
+alter table app_users add column if not exists must_change boolean not null default false;

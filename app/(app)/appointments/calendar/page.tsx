@@ -48,14 +48,14 @@ export default function CalendarPage() {
       <section className="card overflow-hidden">
         <div className="scroll-thin overflow-x-auto">
           <div className="min-w-[860px]">
-            <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-line bg-[#f6f9f7]">
+            <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-line bg-[#f7f8fa]">
               <div />
               {days.map((day) => (<div key={day} className={clsx("border-l border-line-2 px-3 py-2.5 text-center", day === ANCHOR && "bg-brand-50")}><div className="text-xs text-muted">{dayName(day)}</div><div className={clsx("text-[15px] font-semibold", day === ANCHOR && "text-brand")}>{fmtShort(day)}</div></div>))}
             </div>
             <div className="relative grid grid-cols-[56px_repeat(7,1fr)]">
               <div>{Array.from({ length: H1 - H0 }, (_, i) => <div key={i} style={{ height: ROW }} className="pr-2 text-right text-xs tabular-nums text-faint"><span className="relative -top-2">{String(H0 + i).padStart(2, "0")}:00</span></div>)}</div>
               {days.map((day) => (
-                <div key={day} className={clsx("relative border-l border-line-2", day === ANCHOR && "bg-[#f7fbf9]")} style={{ height: (H1 - H0) * ROW }}>
+                <div key={day} className={clsx("relative border-l border-line-2", day === ANCHOR && "bg-[#f6faff]")} style={{ height: (H1 - H0) * ROW }}>
                   {Array.from({ length: H1 - H0 }, (_, i) => <div key={i} style={{ height: ROW }} className="border-b border-line-2" />)}
                   {lanes[day].map(({ a, lane, n }) => {
                     const mins = Number(a.date.slice(11, 13)) * 60 + Number(a.date.slice(14, 16)) - H0 * 60;

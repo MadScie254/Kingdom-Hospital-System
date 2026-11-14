@@ -56,7 +56,7 @@ export default function Sha() {
           </section>
         )}
         {tab === "facility" && (
-          <section className="card card-pad max-w-2xl"><h2 className="card-title mb-4">Facility details used on claims</h2><dl className="kv"><dt>Facility name</dt><dd>{h.name}</dd><dt>Facility code</dt><dd>{h.facilityCode}</dd><dt>KRA PIN</dt><dd>{h.kra}</dd><dt>Registration</dt><dd>{h.registration}</dd><dt>Address</dt><dd>{h.address}</dd></dl><Link href="/settings" className="btn btn-secondary mt-5">Edit in settings</Link></section>
+          <section className="card card-pad max-w-2xl"><h2 className="card-title mb-4">Facility details used on claims</h2><dl className="kv"><dt>Facility name</dt><dd>{h.name}</dd><dt>Facility code</dt><dd>{h.facilityCode || "Not set"}</dd><dt>KRA PIN</dt><dd>{h.kra || "Not set"}</dd><dt>Registration</dt><dd>{h.registration || "Not set"}</dd><dt>Address</dt><dd>{h.address}</dd></dl><Link href="/settings" className="btn btn-secondary mt-5">Edit in settings</Link></section>
         )}
       </div>
     </div>

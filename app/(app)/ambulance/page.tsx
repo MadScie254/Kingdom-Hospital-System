@@ -24,7 +24,7 @@ const payments: ResourceDef = {
   collection: "bookings", title: "Payments", singular: "payment", readOnly: true, derive: (c) => c.db.bookings.filter((b) => b.status === "Completed" || b.status === "On trip"),
   cols: () => [{ key: "date", header: "Date", render: (r) => fmtDateTime(r.date), value: (r) => r.date }, { key: "patient", header: "Patient" }, { key: "route", header: "Route", value: (r) => `${r.from} to ${r.to}` }, { key: "fee", header: "Amount", render: (r) => kes(r.fee, 0), value: (r) => r.fee, align: "right" }, { key: "status", header: "Trip", render: (r) => <Status value={r.status} /> }],
 };
-const RATES: [string, string, number][] = [["Basic life support, within Nairobi", "Up to 20 km", 6000], ["Basic life support, beyond Nairobi", "Per km after 20 km", 120], ["Advanced life support, within Nairobi", "Up to 20 km", 12000], ["Neonatal transport", "Up to 20 km", 14000], ["Oxygen supply during transfer", "Per trip", 1500]];
+const RATES: [string, string, number][] = [["Basic life support, within Webuye", "Up to 20 km", 6000], ["Basic life support, beyond Webuye", "Per km after 20 km", 120], ["Advanced life support, within Webuye", "Up to 20 km", 12000], ["Neonatal transport", "Up to 20 km", 14000], ["Oxygen supply during transfer", "Per trip", 1500]];
 
 export default function AmbulancePage() {
   const d = useDB();

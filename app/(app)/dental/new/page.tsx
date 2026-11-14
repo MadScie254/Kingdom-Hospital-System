@@ -7,14 +7,14 @@ import { Field, PageHeader, toast } from "@/components/ui";
 import { ANCHOR } from "@/lib/format";
 
 const COND: Record<string, { fill: string; stroke: string; text: string }> = {
-  Healthy: { fill: "#ffffff", stroke: "#b4c3bb", text: "#12231e" },
+  Healthy: { fill: "#ffffff", stroke: "#b8c0c9", text: "#18222b" },
   Caries: { fill: "#f6c9c5", stroke: "#b42318", text: "#7a1a12" },
-  Filled: { fill: "#cfe3f0", stroke: "#1d6a96", text: "#124d6e" },
+  Filled: { fill: "#cfe0f2", stroke: "#2a6fae", text: "#1f5384" },
   Crown: { fill: "#f1dfae", stroke: "#b58a2b", text: "#6b5014" },
-  "Root canal": { fill: "#cfe9e0", stroke: "#0d6e57", text: "#0a5845" },
+  "Root canal": { fill: "#cfe9e6", stroke: "#0f766e", text: "#0b4f49" },
   Impacted: { fill: "#fbe3bd", stroke: "#a35a06", text: "#6d3c04" },
-  Missing: { fill: "#edf0ee", stroke: "#a2b0a9", text: "#687b73" },
-  Extracted: { fill: "#d6ddd9", stroke: "#566a63", text: "#3a4d46" },
+  Missing: { fill: "#eef0f2", stroke: "#a5aeb8", text: "#68737d" },
+  Extracted: { fill: "#d9dde2", stroke: "#59646e", text: "#3f4a55" },
 };
 const UR = [18, 17, 16, 15, 14, 13, 12, 11], UL = [21, 22, 23, 24, 25, 26, 27, 28], LR = [48, 47, 46, 45, 44, 43, 42, 41], LL = [31, 32, 33, 34, 35, 36, 37, 38];
 
@@ -24,10 +24,10 @@ function Tooth({ n, cond, sel, onClick }: { n: number; cond: string; sel: boolea
   return (
     <button type="button" onClick={onClick} aria-pressed={sel} aria-label={`Tooth ${n}, ${cond || "Healthy"}`} className="group flex flex-col items-center gap-1">
       <svg width={molar ? 34 : 28} height="38" viewBox="0 0 34 38" className={clsx("transition-transform group-hover:-translate-y-0.5", sel && "drop-shadow")}>
-        <path d="M5 8c0-4 4-6 12-6s12 2 12 6c0 6-1 9-2 15-1 6-2 13-5 13-2 0-2-6-5-6s-3 6-5 6c-3 0-4-7-5-13-1-6-2-9-2-15Z" fill={c.fill} stroke={sel ? "#12231e" : c.stroke} strokeWidth={sel ? 2.4 : 1.4} strokeDasharray={cond === "Missing" ? "3 2" : undefined} />
-        {cond === "Extracted" && <path d="M9 10l16 16M25 10 9 26" stroke="#566a63" strokeWidth="2" />}
+        <path d="M5 8c0-4 4-6 12-6s12 2 12 6c0 6-1 9-2 15-1 6-2 13-5 13-2 0-2-6-5-6s-3 6-5 6c-3 0-4-7-5-13-1-6-2-9-2-15Z" fill={c.fill} stroke={sel ? "#18222b" : c.stroke} strokeWidth={sel ? 2.4 : 1.4} strokeDasharray={cond === "Missing" ? "3 2" : undefined} />
+        {cond === "Extracted" && <path d="M9 10l16 16M25 10 9 26" stroke="#59646e" strokeWidth="2" />}
       </svg>
-      <span className="text-[11px] font-semibold tabular-nums" style={{ color: sel ? "#0d6e57" : c.text }}>{n}</span>
+      <span className="text-[11px] font-semibold tabular-nums" style={{ color: sel ? "#2a6fae" : c.text }}>{n}</span>
     </button>
   );
 }
@@ -81,7 +81,7 @@ export default function NewDental() {
         </div>
         <div className="min-w-0 space-y-5">
           <section className="card">
-            <div className="card-head"><h2 className="card-title">Odontogram</h2><div className="flex items-center gap-2"><label className="flex cursor-pointer items-center gap-2 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#0d6e57]" checked={multi} onChange={(e) => { setMulti(e.target.checked); if (!e.target.checked) setSel(sel.slice(0, 1)); }} />Select several teeth</label><button className="btn btn-secondary btn-sm" onClick={() => { setTeeth({}); setSel([]); }}>Reset chart</button></div></div>
+            <div className="card-head"><h2 className="card-title">Odontogram</h2><div className="flex items-center gap-2"><label className="flex cursor-pointer items-center gap-2 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#2a6fae]" checked={multi} onChange={(e) => { setMulti(e.target.checked); if (!e.target.checked) setSel(sel.slice(0, 1)); }} />Select several teeth</label><button className="btn btn-secondary btn-sm" onClick={() => { setTeeth({}); setSel([]); }}>Reset chart</button></div></div>
             <div className="scroll-thin overflow-x-auto p-5">
               <div className="mx-auto min-w-[620px] max-w-[720px]">
                 <div className="mb-1 grid grid-cols-2 text-center text-xs text-muted"><span>Upper right</span><span>Upper left</span></div>

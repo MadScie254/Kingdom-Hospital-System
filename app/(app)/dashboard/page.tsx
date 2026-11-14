@@ -8,7 +8,7 @@ import { useDB, useLookup } from "@/lib/store";
 import { ANCHOR, addDays, dayName, fmtDate, fmtShort, fmtTime, kes, kesShort } from "@/lib/format";
 import { invoiceTotals } from "@/lib/billing";
 
-const C = { brand: "#0d6e57", steel: "#1d6a96", gold: "#b58a2b", grid: "#e3ebe7", mute: "#566a63" };
+const C = { brand: "#2a6fae", steel: "#2a6fae", gold: "#b58a2b", grid: "#e6e9ed", mute: "#59646e" };
 
 function Meter({ label, value, total, tone = C.brand, right }: { label: string; value: number; total: number; tone?: string; right?: string }) {
   const pct = total ? Math.round((value / total) * 100) : 0;
@@ -79,7 +79,7 @@ export default function Dashboard() {
                 <CartesianGrid vertical={false} stroke={C.grid} />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: C.mute }} interval={1} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: C.mute }} width={52} tickFormatter={(v) => (v >= 1000 ? `${v / 1000}K` : String(v))} />
-                <Tooltip cursor={{ fill: "#f2f5f3" }} formatter={(v) => [kes(Number(v), 0), "Collected"]} contentStyle={{ borderRadius: 8, border: "1px solid #d9e2de", fontSize: 12 }} />
+                <Tooltip cursor={{ fill: "#f4f5f7" }} formatter={(v) => [kes(Number(v), 0), "Collected"]} contentStyle={{ borderRadius: 8, border: "1px solid #dde1e6", fontSize: 12 }} />
                 <Bar dataKey="total" fill={C.brand} radius={[3, 3, 0, 0]} maxBarSize={26} />
               </BarChart>
             </ResponsiveContainer>
@@ -122,7 +122,7 @@ export default function Dashboard() {
         <section className="card xl:col-span-1">
           <div className="card-head"><h2 className="card-title">Laboratory pipeline</h2><Link href="/lab" className="btn btn-ghost btn-sm">Worklist</Link></div>
           <div className="space-y-4 p-5">
-            {m.lab.map((x, i) => <Meter key={x.s} label={x.s} value={x.n} total={Math.max(...m.lab.map((y) => y.n), 1)} right={String(x.n)} tone={["#8fb8d0", "#5b9cc0", "#1d6a96", "#b58a2b", "#2f8a3e"][i]} />)}
+            {m.lab.map((x, i) => <Meter key={x.s} label={x.s} value={x.n} total={Math.max(...m.lab.map((y) => y.n), 1)} right={String(x.n)} tone={["#9cc0e0", "#6aa3d3", "#2a6fae", "#b58a2b", "#2f8a3e"][i]} />)}
             <p className="border-t border-line-2 pt-3 text-xs text-muted">Released shows the last three days. Open the worklist to collect samples and enter results.</p>
           </div>
         </section>
@@ -131,7 +131,7 @@ export default function Dashboard() {
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <section className="card">
           <div className="card-head"><h2 className="card-title">Leading diagnoses</h2><span className="text-xs text-muted">All consultations on record</span></div>
-          <div className="space-y-4 p-5">{m.topDx.map(([n, c], i) => <Meter key={n} label={n} value={c} total={m.topDx[0][1]} right={`${c} cases`} tone={i === 0 ? C.brand : "#6fae9c"} />)}</div>
+          <div className="space-y-4 p-5">{m.topDx.map(([n, c], i) => <Meter key={n} label={n} value={c} total={m.topDx[0][1]} right={`${c} cases`} tone={i === 0 ? C.brand : "#8fb4db"} />)}</div>
         </section>
         <section className="card">
           <div className="card-head"><h2 className="card-title">SHA claims</h2><Link href="/sha" className="btn btn-ghost btn-sm">Open claims</Link></div>

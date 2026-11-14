@@ -21,10 +21,9 @@ export function buildSeed(): DB {
   const mk = <T extends object>(list: T[]): Row[] => list.map((x, i) => ({ id: i + 1, ...x }) as Row);
 
   const settings = [{
-    id: 1, name: "Kingdom Hospital", tagline: "Care with dignity", address: "Mombasa Road, Nairobi", phone: "+254 20 555 0142",
-    email: "accounts@kingdomhospital.co.ke", currency: "KES", vat: 16, discount: 0, timeFormat: "24 hour", kra: "P051234567K",
-    facilityCode: "13579", footer: "Thank you for choosing Kingdom Hospital.", mpesaPaybill: "522533", mpesaAccount: "KINGDOM",
-    bank: "Equity Bank, Account 0170123456789", registration: "Level 4 Hospital, KMPDC licensed",
+    id: 1, name: "Kingdom Faith Based Hospital", tagline: "Faith based hospital", address: "P.O Box 2, 50205 Webuye", phone: "+254 140 058 107",
+    email: "kingdomfaithbasedhospital@gmail.com", currency: "KES", vat: 0, discount: 0, timeFormat: "24 hour", kra: "", facilityCode: "",
+    footer: "Thank you for choosing Kingdom Faith Based Hospital.", mpesaPaybill: "", mpesaAccount: "", bank: "", registration: "",
   }];
 
   const departments = mk([
@@ -41,36 +40,36 @@ export function buildSeed(): DB {
   ]);
 
   const doctors = mk([
-    { name: "Dr. Amos Kiplagat", departmentId: 6, specialty: "Internal Medicine", email: "a.kiplagat@kingdomhospital.co.ke", phone: "+254 722 410 118", licence: "KMPDC 12044", fee: 2500, status: "Active" },
-    { name: "Dr. Sarah Mutheu", departmentId: 3, specialty: "Paediatrics", email: "s.mutheu@kingdomhospital.co.ke", phone: "+254 733 560 291", licence: "KMPDC 13871", fee: 2500, status: "Active" },
-    { name: "Dr. James Oloo", departmentId: 5, specialty: "General Surgery", email: "j.oloo@kingdomhospital.co.ke", phone: "+254 711 802 667", licence: "KMPDC 10932", fee: 3500, status: "Active" },
-    { name: "Dr. Ann Wairimu", departmentId: 4, specialty: "Obstetrics and Gynaecology", email: "a.wairimu@kingdomhospital.co.ke", phone: "+254 720 334 905", licence: "KMPDC 14420", fee: 3000, status: "Active" },
-    { name: "Dr. Hassan Mohamed", departmentId: 2, specialty: "Emergency Medicine", email: "h.mohamed@kingdomhospital.co.ke", phone: "+254 745 118 372", licence: "KMPDC 11659", fee: 3000, status: "Active" },
-    { name: "Dr. Lydia Chepkoech", departmentId: 8, specialty: "Dental Surgery", email: "l.chepkoech@kingdomhospital.co.ke", phone: "+254 728 640 553", licence: "KMPDC 15208", fee: 2000, status: "Active" },
-    { name: "Dr. Peter Kamau", departmentId: 9, specialty: "Radiology", email: "p.kamau@kingdomhospital.co.ke", phone: "+254 735 907 144", licence: "KMPDC 12786", fee: 2500, status: "On leave" },
-    { name: "Dr. Judy Wanjiku", departmentId: 7, specialty: "Cardiology", email: "j.wanjiku@kingdomhospital.co.ke", phone: "+254 701 288 430", licence: "KMPDC 13095", fee: 4000, status: "Active" },
+    { name: "Dr. Amos Kiplagat", departmentId: 6, specialty: "Internal Medicine", email: "a.kiplagat@kfbh.example", phone: "+254 722 410 118", licence: "KMPDC 12044", fee: 2500, status: "Active" },
+    { name: "Dr. Sarah Mutheu", departmentId: 3, specialty: "Paediatrics", email: "s.mutheu@kfbh.example", phone: "+254 733 560 291", licence: "KMPDC 13871", fee: 2500, status: "Active" },
+    { name: "Dr. James Oloo", departmentId: 5, specialty: "General Surgery", email: "j.oloo@kfbh.example", phone: "+254 711 802 667", licence: "KMPDC 10932", fee: 3500, status: "Active" },
+    { name: "Dr. Ann Wairimu", departmentId: 4, specialty: "Obstetrics and Gynaecology", email: "a.wairimu@kfbh.example", phone: "+254 720 334 905", licence: "KMPDC 14420", fee: 3000, status: "Active" },
+    { name: "Dr. Hassan Mohamed", departmentId: 2, specialty: "Emergency Medicine", email: "h.mohamed@kfbh.example", phone: "+254 745 118 372", licence: "KMPDC 11659", fee: 3000, status: "Active" },
+    { name: "Dr. Lydia Chepkoech", departmentId: 8, specialty: "Dental Surgery", email: "l.chepkoech@kfbh.example", phone: "+254 728 640 553", licence: "KMPDC 15208", fee: 2000, status: "Active" },
+    { name: "Dr. Peter Kamau", departmentId: 9, specialty: "Radiology", email: "p.kamau@kfbh.example", phone: "+254 735 907 144", licence: "KMPDC 12786", fee: 2500, status: "On leave" },
+    { name: "Dr. Judy Wanjiku", departmentId: 7, specialty: "Cardiology", email: "j.wanjiku@kfbh.example", phone: "+254 701 288 430", licence: "KMPDC 13095", fee: 4000, status: "Active" },
   ]);
 
   const nurses = mk([
-    { name: "Mary Wangare", ward: "General Ward A", email: "m.wangare@kingdomhospital.co.ke", phone: "+254 712 330 441", licence: "NCK 88213", shift: "Day" },
-    { name: "John Kiprotich", ward: "Intensive Care", email: "j.kiprotich@kingdomhospital.co.ke", phone: "+254 723 118 205", licence: "NCK 90417", shift: "Night" },
-    { name: "Faith Nyawira", ward: "Maternity Ward", email: "f.nyawira@kingdomhospital.co.ke", phone: "+254 734 772 019", licence: "NCK 77654", shift: "Day" },
-    { name: "Caroline Atieno", ward: "Paediatric Ward", email: "c.atieno@kingdomhospital.co.ke", phone: "+254 745 660 382", licence: "NCK 81930", shift: "Day" },
-    { name: "Stephen Mwiti", ward: "Emergency", email: "s.mwiti@kingdomhospital.co.ke", phone: "+254 757 401 226", licence: "NCK 85572", shift: "Night" },
-    { name: "Tabitha Chelimo", ward: "General Ward B", email: "t.chelimo@kingdomhospital.co.ke", phone: "+254 768 912 540", licence: "NCK 79116", shift: "Day" },
+    { name: "Mary Wangare", ward: "General Ward A", email: "m.wangare@kfbh.example", phone: "+254 712 330 441", licence: "NCK 88213", shift: "Day" },
+    { name: "John Kiprotich", ward: "Intensive Care", email: "j.kiprotich@kfbh.example", phone: "+254 723 118 205", licence: "NCK 90417", shift: "Night" },
+    { name: "Faith Nyawira", ward: "Maternity Ward", email: "f.nyawira@kfbh.example", phone: "+254 734 772 019", licence: "NCK 77654", shift: "Day" },
+    { name: "Caroline Atieno", ward: "Paediatric Ward", email: "c.atieno@kfbh.example", phone: "+254 745 660 382", licence: "NCK 81930", shift: "Day" },
+    { name: "Stephen Mwiti", ward: "Emergency", email: "s.mwiti@kfbh.example", phone: "+254 757 401 226", licence: "NCK 85572", shift: "Night" },
+    { name: "Tabitha Chelimo", ward: "General Ward B", email: "t.chelimo@kfbh.example", phone: "+254 768 912 540", licence: "NCK 79116", shift: "Day" },
   ]);
 
   const staff = mk([
-    { name: "Ruth Njeri", role: "Hospital Administrator", department: "Administration", phone: phone(), email: "r.njeri@kingdomhospital.co.ke", joined: "2019-02-04", salary: 185000, status: "Active" },
-    { name: "Kennedy Otieno", role: "Accountant", department: "Finance", phone: phone(), email: "k.otieno@kingdomhospital.co.ke", joined: "2020-06-15", salary: 120000, status: "Active" },
-    { name: "Lilian Wekesa", role: "Pharmacist", department: "Pharmacy", phone: phone(), email: "l.wekesa@kingdomhospital.co.ke", joined: "2021-01-11", salary: 140000, status: "Active" },
-    { name: "Martin Kariuki", role: "Lab Technologist", department: "Laboratory", phone: phone(), email: "m.kariuki@kingdomhospital.co.ke", joined: "2021-09-01", salary: 110000, status: "Active" },
-    { name: "Dorcas Moraa", role: "Lab Technologist", department: "Laboratory", phone: phone(), email: "d.moraa@kingdomhospital.co.ke", joined: "2022-03-21", salary: 105000, status: "Active" },
-    { name: "Elijah Mutiso", role: "Radiographer", department: "Radiology", phone: phone(), email: "e.mutiso@kingdomhospital.co.ke", joined: "2022-07-18", salary: 115000, status: "Active" },
-    { name: "Joyce Cherop", role: "Receptionist", department: "Front Office", phone: phone(), email: "j.cherop@kingdomhospital.co.ke", joined: "2023-01-09", salary: 55000, status: "Active" },
-    { name: "Abdi Warsame", role: "Ambulance Driver", department: "Transport", phone: phone(), email: "a.warsame@kingdomhospital.co.ke", joined: "2020-11-02", salary: 48000, status: "Active" },
-    { name: "Lucy Wambui", role: "Records Officer", department: "Health Records", phone: phone(), email: "l.wambui@kingdomhospital.co.ke", joined: "2022-10-24", salary: 62000, status: "Active" },
-    { name: "Titus Ng'ang'a", role: "Procurement Officer", department: "Stores", phone: phone(), email: "t.nganga@kingdomhospital.co.ke", joined: "2021-05-17", salary: 90000, status: "On leave" },
+    { name: "Ruth Njeri", role: "Hospital Administrator", department: "Administration", phone: phone(), email: "r.njeri@kfbh.example", joined: "2019-02-04", salary: 185000, status: "Active" },
+    { name: "Kennedy Otieno", role: "Accountant", department: "Finance", phone: phone(), email: "k.otieno@kfbh.example", joined: "2020-06-15", salary: 120000, status: "Active" },
+    { name: "Lilian Wekesa", role: "Pharmacist", department: "Pharmacy", phone: phone(), email: "l.wekesa@kfbh.example", joined: "2021-01-11", salary: 140000, status: "Active" },
+    { name: "Martin Kariuki", role: "Lab Technologist", department: "Laboratory", phone: phone(), email: "m.kariuki@kfbh.example", joined: "2021-09-01", salary: 110000, status: "Active" },
+    { name: "Dorcas Moraa", role: "Lab Technologist", department: "Laboratory", phone: phone(), email: "d.moraa@kfbh.example", joined: "2022-03-21", salary: 105000, status: "Active" },
+    { name: "Elijah Mutiso", role: "Radiographer", department: "Radiology", phone: phone(), email: "e.mutiso@kfbh.example", joined: "2022-07-18", salary: 115000, status: "Active" },
+    { name: "Joyce Cherop", role: "Receptionist", department: "Front Office", phone: phone(), email: "j.cherop@kfbh.example", joined: "2023-01-09", salary: 55000, status: "Active" },
+    { name: "Abdi Warsame", role: "Ambulance Driver", department: "Transport", phone: phone(), email: "a.warsame@kfbh.example", joined: "2020-11-02", salary: 48000, status: "Active" },
+    { name: "Lucy Wambui", role: "Records Officer", department: "Health Records", phone: phone(), email: "l.wambui@kfbh.example", joined: "2022-10-24", salary: 62000, status: "Active" },
+    { name: "Titus Ng'ang'a", role: "Procurement Officer", department: "Stores", phone: phone(), email: "t.nganga@kfbh.example", joined: "2021-05-17", salary: 90000, status: "On leave" },
   ]);
 
   const names: [string, "Female" | "Male"][] = [
@@ -80,13 +79,13 @@ export function buildSeed(): DB {
     ["Victor Mutua", "Male"], ["Naomi Wafula", "Female"], ["Collins Omondi", "Male"], ["Jacinta Mwende", "Female"], ["Isaac Korir", "Male"],
     ["Halima Yusuf", "Female"], ["Simon Njoroge", "Male"], ["Beatrice Adhiambo", "Female"], ["Patrick Maina", "Male"],
   ];
-  const areas = ["Embakasi", "South B", "Kileleshwa", "Rongai", "Kitengela", "Syokimau", "Githurai", "Donholm", "Ruaka", "Utawala"];
+  const areas = ["Webuye Town", "Lugulu", "Misikhu", "Bokoli", "Matulo", "Maraka", "Mihuu", "Chwele", "Kimilili", "Naitiri"];
   const groups = ["O positive", "A positive", "B positive", "O negative", "AB positive", "A negative"];
   const patients = mk(names.map(([name, gender], i) => ({
-    mrn: `KH${String(100124 + i * 7)}`, name, gender, phone: phone(), email: `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@mail.co.ke`,
+    mrn: `KH${String(100124 + i * 7)}`, name, gender, phone: phone(), email: `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@mail.example`,
     dob: `${ri(1958, 2018)}-${String(ri(1, 12)).padStart(2, "0")}-${String(ri(1, 28)).padStart(2, "0")}`, nationalId: String(ri(20000000, 39999999)),
     shaNumber: i % 5 === 4 ? "" : `SHA${ri(10000000, 99999999)}`, bloodGroup: pick(groups), heightCm: ri(150, 188), weightKg: ri(48, 96),
-    address: `${pick(areas)}, Nairobi`, nextOfKin: pick(names.filter((n) => n[0] !== name))[0], nextOfKinPhone: phone(), insurer: i % 4 === 0 ? "Jubilee Insurance" : i % 7 === 0 ? "AAR" : "SHA",
+    address: `${pick(areas)}, Bungoma County`, nextOfKin: pick(names.filter((n) => n[0] !== name))[0], nextOfKinPhone: phone(), insurer: i % 4 === 0 ? "Jubilee Insurance" : i % 7 === 0 ? "AAR" : "SHA",
     allergies: i % 6 === 0 ? "Penicillin" : i % 9 === 0 ? "Sulphonamides" : "None known", registered: day(-ri(2, 400)),
   })));
 
@@ -209,7 +208,7 @@ export function buildSeed(): DB {
   const services = mk([
     ["General consultation", "Consultation", 1500], ["Specialist consultation", "Consultation", 3000], ["Follow up consultation", "Consultation", 800], ["Chest X ray", "Radiology", 2500],
     ["Abdominal ultrasound", "Radiology", 3500], ["Obstetric ultrasound", "Radiology", 3000], ["ECG", "Cardiology", 1800], ["Echocardiogram", "Cardiology", 7500], ["Wound dressing", "Procedure", 700],
-    ["Suturing, minor", "Procedure", 2500], ["Nebulisation", "Procedure", 900], ["Dental extraction", "Dental", 3500], ["Dental scaling and polishing", "Dental", 4500], ["Ambulance, within Nairobi", "Transport", 6000],
+    ["Suturing, minor", "Procedure", 2500], ["Nebulisation", "Procedure", 900], ["Dental extraction", "Dental", 3500], ["Dental scaling and polishing", "Dental", 4500], ["Ambulance, within Webuye", "Transport", 6000],
     ["Normal delivery package", "Maternity", 45000], ["Caesarean section package", "Maternity", 120000], ["Theatre fee, minor", "Theatre", 15000],
   ].map(([name, category, price]) => ({ name, category, price })));
 
@@ -253,8 +252,8 @@ export function buildSeed(): DB {
     { plate: "KDD 105T", driver: "Moses Kioko", phone: "+254 745 021 778", type: "Neonatal transport", equipment: "Incubator, neonatal monitor", capacity: 2, status: "Available" },
   ]);
   const bookings = mk([
-    ["Wanjiru Njeri", "Embakasi", "Kingdom Hospital", 2, "On trip", 0, 6000], ["Otieno Family", "Kenyatta Avenue", "Kingdom Hospital", 1, "Completed", -1, 4500], ["Amina Hassan", "Kingdom Hospital", "Kenyatta National Hospital", 2, "Completed", -2, 9500],
-    ["Baby of Faith Wambui", "Kitengela", "Kingdom Hospital", 4, "Scheduled", 1, 12000], ["Peter Mwangi", "Syokimau", "Kingdom Hospital", 1, "Completed", -4, 7500], ["Naomi Wafula", "Kingdom Hospital", "Nairobi West Hospital", 1, "Cancelled", -5, 0],
+    ["Wanjiru Njeri", "Misikhu", "Kingdom Hospital", 2, "On trip", 0, 6000], ["Otieno Family", "Webuye Town", "Kingdom Hospital", 1, "Completed", -1, 4500], ["Amina Hassan", "Kingdom Hospital", "Referral hospital, Eldoret", 2, "Completed", -2, 9500],
+    ["Baby of Faith Wambui", "Bokoli", "Kingdom Hospital", 4, "Scheduled", 1, 12000], ["Peter Mwangi", "Lugulu", "Kingdom Hospital", 1, "Completed", -4, 7500], ["Naomi Wafula", "Kingdom Hospital", "Bungoma referral hospital", 1, "Cancelled", -5, 0],
   ].map(([patient, from, to, ambulanceId, status, off, fee]: any[]) => ({ patient, from, to, ambulanceId, status, date: at(off, 10, 20), fee })));
 
   const teeth = (o: Record<string, string>) => o;

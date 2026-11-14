@@ -11,10 +11,10 @@ import type { Row } from "@/lib/seed";
 
 const STATUS: Record<string, { tile: string; strip: string; label: string }> = {
   Available: { tile: "bg-white hover:border-ok", strip: "#15803d", label: "Free" },
-  Occupied: { tile: "bg-info-50 border-[#c4dfee] hover:border-info", strip: "#1d6a96", label: "" },
+  Occupied: { tile: "bg-info-50 border-[#c9dcef] hover:border-info", strip: "#2a6fae", label: "" },
   Cleaning: { tile: "bg-warn-50 border-[#f1d8a8] hover:border-warn", strip: "#a35a06", label: "Cleaning" },
-  Reserved: { tile: "bg-white border-dashed border-[#9fb0a8] hover:border-muted", strip: "#566a63", label: "Reserved" },
-  Maintenance: { tile: "bg-[#edf0ee] hover:border-muted", strip: "#687b73", label: "Repair" },
+  Reserved: { tile: "bg-white border-dashed border-[#a3acb6] hover:border-muted", strip: "#59646e", label: "Reserved" },
+  Maintenance: { tile: "bg-[#eef0f2] hover:border-muted", strip: "#68737d", label: "Repair" },
 };
 
 function BedTile({ bed, name, onClick }: { bed: Row; name: string; onClick: () => void }) {
@@ -24,7 +24,7 @@ function BedTile({ bed, name, onClick }: { bed: Row; name: string; onClick: () =
       <span className="absolute inset-y-0 left-0 w-1.5" style={{ background: s.strip }} />
       <span className="text-[13px] font-semibold tabular-nums">{bed.code}</span>
       <span className="max-w-full truncate text-[11.5px] text-muted">{bed.status === "Occupied" ? name : s.label}</span>
-      {bed.status === "Occupied" && <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-semibold text-info ring-1 ring-[#c4dfee]">{initials(name)}</span>}
+      {bed.status === "Occupied" && <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-semibold text-info ring-1 ring-[#c9dcef]">{initials(name)}</span>}
     </button>
   );
 }
@@ -112,7 +112,7 @@ export default function BedBoard() {
       <div className="space-y-5">
         {floors.filter((f) => floor === "All floors" || floor === f).map((f) => (
           <section key={f} className="card overflow-hidden">
-            <div className="card-head bg-[#f6f9f7]"><h2 className="card-title">{f}</h2><span className="text-xs text-muted">{d.beds.filter((b) => b.floor === f && b.status === "Occupied").length} of {d.beds.filter((b) => b.floor === f).length} beds occupied</span></div>
+            <div className="card-head bg-[#f7f8fa]"><h2 className="card-title">{f}</h2><span className="text-xs text-muted">{d.beds.filter((b) => b.floor === f && b.status === "Occupied").length} of {d.beds.filter((b) => b.floor === f).length} beds occupied</span></div>
             <div className="grid gap-px bg-line-2 lg:grid-cols-2">
               {wardsOn(f).map((w) => {
                 const beds = d.beds.filter((b) => b.ward === w);

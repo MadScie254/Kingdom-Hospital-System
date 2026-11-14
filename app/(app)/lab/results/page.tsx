@@ -53,7 +53,7 @@ export default function Results() {
         <section className="card xl:col-span-2">
           <div className="card-head"><div><h2 className="card-title">Requests per day</h2><p className="text-xs text-muted">All tests ordered, last 14 days</p></div></div>
           <div className="h-[220px] px-3 pb-3 pt-5">
-            <ResponsiveContainer width="100%" height="100%"><BarChart data={a.volume} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}><CartesianGrid vertical={false} stroke="#e3ebe7" /><XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#566a63" }} interval={1} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#566a63" }} /><Tooltip cursor={{ fill: "#f2f5f3" }} contentStyle={{ borderRadius: 8, border: "1px solid #d9e2de", fontSize: 12 }} formatter={(v) => [String(v), "Requests"]} /><Bar dataKey="n" fill="#1d6a96" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%"><BarChart data={a.volume} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}><CartesianGrid vertical={false} stroke="#e6e9ed" /><XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#59646e" }} interval={1} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#59646e" }} /><Tooltip cursor={{ fill: "#f4f5f7" }} contentStyle={{ borderRadius: 8, border: "1px solid #dde1e6", fontSize: 12 }} formatter={(v) => [String(v), "Requests"]} /><Bar dataKey="n" fill="#0f766e" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer>
           </div>
         </section>
         <section className="card">

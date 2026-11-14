@@ -1,6 +1,6 @@
 # Kingdom Hospital System
 
-Hospital management system for Kingdom Hospital, Nairobi. Built with Next.js 16, React 19, TypeScript and Tailwind CSS 4. Typeface is IBM Plex Sans, loaded locally so the app works offline and on hosts without font access.
+Hospital management system for Kingdom Faith Based Hospital, Webuye. Built with Next.js 16, React 19, TypeScript and Tailwind CSS 4. Typeface is IBM Plex Sans, loaded locally so the app works offline and on hosts without font access.
 
 ## Modules
 
@@ -36,6 +36,12 @@ Dates use a fixed demonstration day (`ANCHOR` in `lib/format.ts`). Replace it wi
 * Host the app on Cloudflare Workers (OpenNext adapter) or Vercel. Vercel Hobby is for non commercial use only, so a hospital needs Vercel Pro. Cloudflare's free plan allows commercial use.
 * Keep patient records in PostgreSQL (Neon or Supabase), not in a key value store. Billing, admissions and lab results need transactions and foreign keys. Cloudflare D1 is SQLite, capped at 10 GB per database, and fine for small tools but weaker for this workload.
 * Turn on daily backups and point in time recovery before real patient data goes in. Patient data is sensitive personal data under the Kenya Data Protection Act, 2019. Register with the ODPC and check data location rules.
+
+## Brand
+
+The logo is `public/logo.svg` (full), `public/logo-mark.svg` (eye only), `public/logo.png` (transparent, 2220 px wide) and `app/icon.svg` (favicon). It was redrawn from a photo of the hospital letterhead, so it is close but not the original artwork. Drop the original file over `public/logo.svg` to replace it everywhere. Colours follow the logo: azure `#2a6fae` for actions and the brick red `#c1432c` stays inside the logo. All colours live in `app/globals.css`.
+
+Hospital name, address, phone and email are in Settings. KRA PIN, facility code, M Pesa Paybill and bank details start empty and print on invoices only once filled in.
 
 ## Conventions
 

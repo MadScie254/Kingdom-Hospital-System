@@ -2,7 +2,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { buildSeed, type DB, type CollectionName, type Row } from "./seed";
 
-const KEY = "kingdom.hospital.v2";
+const KEY = "kingdom.hospital.v3";
 const seed = buildSeed();
 let state: DB = seed;
 const listeners = new Set<() => void>();

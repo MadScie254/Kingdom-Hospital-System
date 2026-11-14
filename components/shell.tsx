@@ -7,17 +7,8 @@ import clsx from "clsx";
 import { NAV, bestMatch } from "@/lib/nav";
 import { useDB } from "@/lib/store";
 import { Avatar, ToastHost } from "./ui";
+import { Logo } from "./logo";
 import { ANCHOR, fmtDate, dayName } from "@/lib/format";
-
-export function Crest({ size = 34 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
-      <rect width="40" height="40" rx="9" fill="#b58a2b" />
-      <path d="M20 7.5 24.2 12.2H15.8Z" fill="#0b2b26" />
-      <path d="M17.2 14h5.6v5h5v5.6h-5v7.9h-5.6v-7.9h-5V19h5Z" fill="#0b2b26" />
-    </svg>
-  );
-}
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -25,17 +16,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
     <nav aria-label="Main" className="flex h-full flex-col">
-      <div className="flex items-center gap-3 px-5 py-4">
-        <Crest />
-        <div className="leading-tight">
-          <div className="text-[15px] font-semibold text-white">Kingdom Hospital</div>
-          <div className="text-[11.5px] text-[#92b8ac]">Level 4 hospital, Nairobi</div>
-        </div>
-      </div>
+      <div className="px-5 pb-2 pt-5"><Logo height={58} /></div>
       <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-6">
         {NAV.map((g) => (
           <div key={g.heading} className="mt-4 first:mt-1">
-            <div className="px-3 pb-1.5 text-[11.5px] font-medium text-[#78a094]">{g.heading}</div>
+            <div className="px-3 pb-1.5 text-[11.5px] font-medium text-faint">{g.heading}</div>
             <ul className="space-y-0.5">
               {g.items.map((it) => {
                 const Icon = it.icon;
@@ -113,12 +98,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const alerts = medicines.filter((m) => m.quantity <= m.reorder).length + labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length;
   return (
     <div className="app-shell min-h-screen">
-      <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-[264px] bg-ink lg:block"><Sidebar /></aside>
+      <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-[264px] border-r border-line bg-white lg:block"><Sidebar /></aside>
       {mobile && (
         <div className="no-print fixed inset-0 z-50 lg:hidden">
           <div className="drawer-scrim absolute inset-0 bg-ink/60" onClick={() => setMobile(false)} />
-          <aside className="drawer-panel absolute inset-y-0 left-0 w-[280px] bg-ink">
-            <button className="btn btn-ghost btn-icon absolute right-2 top-3 !text-white" onClick={() => setMobile(false)} aria-label="Close menu"><X size={16} /></button>
+          <aside className="drawer-panel absolute inset-y-0 left-0 w-[280px] bg-white">
+            <button className="btn btn-ghost btn-icon absolute right-2 top-3" onClick={() => setMobile(false)} aria-label="Close menu"><X size={16} /></button>
             <Sidebar onNavigate={() => setMobile(false)} />
           </aside>
         </div>

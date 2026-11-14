@@ -53,7 +53,7 @@ function InvoiceView({ id }: { id: string }) {
     toast(`Draft ${created.no} created`);
     router.push(`/billing/${created.no}`);
   };
-  const mail = `mailto:${p?.email ?? ""}?subject=${encodeURIComponent(`Invoice ${inv.no} from ${h.name}`)}&body=${encodeURIComponent(`Dear ${p?.name},\n\nInvoice ${inv.no} for ${kes(t.total)} is attached. Balance due: ${kes(balance)}.\n\nPay by M Pesa Paybill ${h.mpesaPaybill}, account ${p?.mrn}.\n\n${h.name}`)}`;
+  const mail = `mailto:${p?.email ?? ""}?subject=${encodeURIComponent(`Invoice ${inv.no} from ${h.name}`)}&body=${encodeURIComponent(`Dear ${p?.name},\n\nInvoice ${inv.no} for ${kes(t.total)} is attached. Balance due: ${kes(balance)}.\n\n${h.mpesaPaybill ? `Pay by M Pesa Paybill ${h.mpesaPaybill}, account ${p?.mrn}.\n\n` : ""}${h.name}`)}`;
 
   return (
     <div>
@@ -102,10 +102,12 @@ function InvoiceView({ id }: { id: string }) {
 
         <section className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-[1fr_300px] sm:gap-10">
           <div className="text-[13px] leading-relaxed">
-            <h2 className="mb-1.5 text-xs font-semibold text-muted">How to pay</h2>
-            <p>M Pesa: Paybill <strong>{h.mpesaPaybill}</strong>, account number <strong>{p?.mrn}</strong></p>
-            <p className="mt-1">Bank transfer: {h.bank}</p>
-            <p className="mt-1 text-muted">Quote {inv.no} as the payment reference.</p>
+            {h.mpesaPaybill || h.bank ? (<>
+              <h2 className="mb-1.5 text-xs font-semibold text-muted">How to pay</h2>
+              {h.mpesaPaybill && <p>M Pesa: Paybill <strong>{h.mpesaPaybill}</strong>, account number <strong>{p?.mrn}</strong></p>}
+              {h.bank && <p className="mt-1">Bank transfer: {h.bank}</p>}
+              <p className="mt-1 text-muted">Quote {inv.no} as the payment reference.</p>
+            </>) : <p className="no-print text-xs text-muted">Add M Pesa or bank details in Settings to print payment instructions here.</p>}
             {inv.note && (<><h2 className="mb-1.5 mt-5 text-xs font-semibold text-muted">Note</h2><p>{inv.note}</p></>)}
           </div>
           <dl className="space-y-2 text-[13px]">
@@ -114,7 +116,7 @@ function InvoiceView({ id }: { id: string }) {
             {t.vat > 0 && <div className="flex justify-between"><dt className="text-muted">VAT ({inv.vatPct}%)</dt><dd className="tabular-nums">{kes(t.vat)}</dd></div>}
             <div className="flex justify-between border-t border-line pt-2 font-semibold"><dt>Total</dt><dd className="tabular-nums">{kes(t.total)}</dd></div>
             <div className="flex justify-between"><dt className="text-muted">Payments received</dt><dd className="tabular-nums text-ok">{kes(-inv.paid)}</dd></div>
-            <div className={`flex items-center justify-between rounded-lg px-4 py-3.5 ${balance <= 0 && inv.status !== "Draft" ? "bg-ok-50 text-ok" : overdue ? "bg-bad-50 text-bad" : "bg-ink text-white"}`}>
+            <div className={`flex items-center justify-between rounded-lg px-4 py-3.5 ${balance <= 0 && inv.status !== "Draft" ? "bg-ok-50 text-ok" : overdue ? "bg-bad-50 text-bad" : "bg-brand text-white"}`}>
               <dt className="font-semibold">{balance <= 0 && inv.status !== "Draft" ? "Paid in full" : "Balance due"}</dt><dd className="text-xl font-semibold tabular-nums">{kes(Math.max(balance, 0))}</dd>
             </div>
           </dl>

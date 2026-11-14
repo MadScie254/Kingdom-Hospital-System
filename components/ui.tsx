@@ -26,7 +26,7 @@ export const Status = ({ value }: { value: string }) => <Badge tone={toneOf(valu
 
 /* ---------- layout bits ---------- */
 export function PageHeader({ title, description, crumbs, actions }: { title: string; description?: string; crumbs?: { label: string; href?: string }[]; actions?: React.ReactNode }) {
-  useEffect(() => { document.title = `${title} | Kingdom Hospital`; }, [title]);
+  useEffect(() => { document.title = `${title} | Kingdom Faith Based Hospital`; }, [title]);
   return (
     <div className="no-print mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
@@ -51,7 +51,7 @@ export function PageHeader({ title, description, crumbs, actions }: { title: str
 const TONE_BG: Record<string, string> = { brand: "bg-brand-50 text-brand", ok: "bg-ok-50 text-ok", warn: "bg-warn-50 text-warn", bad: "bg-bad-50 text-bad", steel: "bg-steel-50 text-steel", gold: "bg-gold-50 text-gold", mute: "bg-surface text-muted" };
 export function Stat({ label, value, hint, tone = "brand", icon: Icon, href }: { label: string; value: React.ReactNode; hint?: React.ReactNode; tone?: string; icon?: React.ComponentType<{ size?: number }>; href?: string }) {
   const body = (
-    <div className={clsx("card flex items-start justify-between gap-3 p-4", href && "transition-colors hover:border-[#bfcdc7]")}>
+    <div className={clsx("card flex items-start justify-between gap-3 p-4", href && "transition-colors hover:border-[#c3cad2]")}>
       <div className="min-w-0">
         <div className="text-xs font-medium text-muted">{label}</div>
         <div className="mt-1.5 text-[20px] font-semibold leading-tight tabular-nums text-text sm:text-[24px]">{value}</div>
@@ -137,7 +137,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
           <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </header>
         <div className="scroll-thin flex-1 overflow-y-auto px-6 py-5">{children}</div>
-        {footer && <footer className="flex items-center justify-end gap-2 border-t border-line bg-[#f9fbfa] px-6 py-3.5">{footer}</footer>}
+        {footer && <footer className="flex items-center justify-end gap-2 border-t border-line bg-[#fafbfc] px-6 py-3.5">{footer}</footer>}
       </aside>
     </div>
   );

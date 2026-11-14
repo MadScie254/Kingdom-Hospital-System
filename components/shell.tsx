@@ -1,0 +1,156 @@
+"use client";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { Bell, ChevronDown, LogOut, Menu, Search, Settings, X } from "lucide-react";
+import clsx from "clsx";
+import { NAV, bestMatch } from "@/lib/nav";
+import { useDB } from "@/lib/store";
+import { Avatar, ToastHost } from "./ui";
+import { ANCHOR, fmtDate, dayName } from "@/lib/format";
+
+export function Crest({ size = 34 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
+      <rect width="40" height="40" rx="9" fill="#b58a2b" />
+      <path d="M20 7.5 24.2 12.2H15.8Z" fill="#0c1f3a" />
+      <path d="M17.2 14h5.6v5h5v5.6h-5v7.9h-5.6v-7.9h-5V19h5Z" fill="#0c1f3a" />
+    </svg>
+  );
+}
+
+function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const active = bestMatch(pathname);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  return (
+    <nav aria-label="Main" className="flex h-full flex-col">
+      <div className="flex items-center gap-3 px-5 py-4">
+        <Crest />
+        <div className="leading-tight">
+          <div className="text-[15px] font-semibold text-white">Kingdom Hospital</div>
+          <div className="text-[11.5px] text-[#8ea2c3]">Level 4 hospital, Nairobi</div>
+        </div>
+      </div>
+      <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-6">
+        {NAV.map((g) => (
+          <div key={g.heading} className="mt-4 first:mt-1">
+            <div className="px-3 pb-1.5 text-[11.5px] font-medium text-[#7389ad]">{g.heading}</div>
+            <ul className="space-y-0.5">
+              {g.items.map((it) => {
+                const Icon = it.icon;
+                const hasKids = !!it.children;
+                const childActive = it.children?.some((c) => c.href === active);
+                const isOpen = open[it.href] ?? !!childActive;
+                if (!hasKids) {
+                  return (
+                    <li key={it.href}>
+                      <Link href={it.href} onClick={onNavigate} className="nav-link" data-active={active === it.href} aria-current={active === it.href ? "page" : undefined}>
+                        <Icon size={17} strokeWidth={1.8} />{it.label}
+                      </Link>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={it.href}>
+                    <button className="nav-link w-full cursor-pointer" data-active={!!childActive && !isOpen} aria-expanded={isOpen} onClick={() => setOpen({ ...open, [it.href]: !isOpen })}>
+                      <Icon size={17} strokeWidth={1.8} />
+                      <span className="flex-1 text-left">{it.label}</span>
+                      <ChevronDown size={14} className={clsx("transition-transform", isOpen && "rotate-180")} />
+                    </button>
+                    {isOpen && (
+                      <ul className="mb-1 mt-0.5 space-y-0.5">
+                        {it.children!.map((c) => (
+                          <li key={c.href}>
+                            <Link href={c.href} onClick={onNavigate} className="nav-sub" data-active={active === c.href} aria-current={active === c.href ? "page" : undefined}>{c.label}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function GlobalSearch() {
+  const { patients } = useDB();
+  const [q, setQ] = useState("");
+  const router = useRouter();
+  const hits = useMemo(() => {
+    const n = q.trim().toLowerCase();
+    return n.length < 2 ? [] : patients.filter((p) => p.name.toLowerCase().includes(n) || p.mrn.toLowerCase().includes(n) || p.phone.replace(/\s/g, "").includes(n.replace(/\s/g, ""))).slice(0, 6);
+  }, [q, patients]);
+  return (
+    <div className="relative w-full max-w-md">
+      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
+      <input className="input h-9 bg-surface pl-9" placeholder="Find a patient by name, record number or phone" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Find a patient" />
+      {hits.length > 0 && (
+        <ul className="absolute left-0 right-0 top-11 z-50 overflow-hidden rounded-lg border border-line bg-white shadow-xl">
+          {hits.map((p) => (
+            <li key={p.id}>
+              <button className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface" onClick={() => { setQ(""); router.push(`/patients/${p.id}`); }}>
+                <Avatar name={p.name} size={28} />
+                <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{p.name}</span><span className="block text-xs text-muted">{p.mrn} &nbsp;{p.phone}</span></span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function Shell({ children }: { children: React.ReactNode }) {
+  const [mobile, setMobile] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const { medicines, labOrders } = useDB();
+  const alerts = medicines.filter((m) => m.quantity <= m.reorder).length + labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length;
+  return (
+    <div className="app-shell min-h-screen">
+      <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-[264px] bg-ink lg:block"><Sidebar /></aside>
+      {mobile && (
+        <div className="no-print fixed inset-0 z-50 lg:hidden">
+          <div className="drawer-scrim absolute inset-0 bg-ink/60" onClick={() => setMobile(false)} />
+          <aside className="drawer-panel absolute inset-y-0 left-0 w-[280px] bg-ink">
+            <button className="btn btn-ghost btn-icon absolute right-2 top-3 !text-white" onClick={() => setMobile(false)} aria-label="Close menu"><X size={16} /></button>
+            <Sidebar onNavigate={() => setMobile(false)} />
+          </aside>
+        </div>
+      )}
+      <div className="app-main lg:ml-[264px]">
+        <header className="no-print sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-white px-4 sm:px-6">
+          <button className="btn btn-ghost btn-icon lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu"><Menu size={18} /></button>
+          <GlobalSearch />
+          <div className="ml-auto flex items-center gap-1.5">
+            <span className="hidden pr-3 text-xs text-muted md:block">{dayName(ANCHOR)}, {fmtDate(ANCHOR)}</span>
+            <Link href="/pharmacy" className="btn btn-ghost btn-icon relative" aria-label={`${alerts} stock and lab alerts`}>
+              <Bell size={17} />
+              {alerts > 0 && <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-bad px-1 text-[10px] font-semibold text-white">{alerts}</span>}
+            </Link>
+            <div className="relative">
+              <button className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Account menu">
+                <Avatar name="Ruth Njeri" size={30} />
+                <span className="hidden text-left leading-tight sm:block"><span className="block text-[13px] font-medium">Ruth Njeri</span><span className="block text-[11.5px] text-muted">Administrator</span></span>
+                <ChevronDown size={14} className="text-faint" />
+              </button>
+              {menu && (
+                <div className="absolute right-0 top-11 z-50 w-48 overflow-hidden rounded-lg border border-line bg-white py-1 shadow-xl" onMouseLeave={() => setMenu(false)}>
+                  <Link href="/settings" className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-surface"><Settings size={15} />Settings</Link>
+                  <Link href="/login" className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-surface"><LogOut size={15} />Sign out</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+      </div>
+      <ToastHost />
+    </div>
+  );
+}

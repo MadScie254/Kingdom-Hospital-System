@@ -16,7 +16,7 @@ export function RangeGauge({ test, value, width = 132 }: { test: Row; value: num
   const crit = v < lo - span * 0.4 || v > hi + span * 0.6;
   return (
     <svg width={width} height="22" viewBox={`0 0 ${width} 22`} role="img" aria-label={`Result ${v} against range ${lo} to ${hi}`}>
-      <rect x="0" y="9" width={width} height="4" rx="2" fill="#e8edf4" />
+      <rect x="0" y="9" width={width} height="4" rx="2" fill="#e5ece8" />
       <rect x={(pos(lo) / 100) * width} y="7" width={((pos(hi) - pos(lo)) / 100) * width} height="8" rx="2" fill="#cfe9d8" />
       <circle cx={(pos(v) / 100) * width} cy="11" r="5.5" fill={crit ? "#b42318" : bad ? "#a35a06" : "#15803d"} stroke="#fff" strokeWidth="1.8" />
     </svg>
@@ -30,8 +30,8 @@ export function Trend({ points, test }: { points: number[]; test: Row }) {
   return (
     <svg width={w} height={h} aria-label="Trend across previous results" role="img">
       {isQuant(test) && <rect x="0" y={y(test.refHigh)} width={w} height={Math.max(y(test.refLow) - y(test.refHigh), 1)} fill="#e3f3ea" />}
-      <polyline points={points.map((p, i) => `${x(i)},${y(p)}`).join(" ")} fill="none" stroke="#1b4f9c" strokeWidth="1.6" />
-      {points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p)} r={i === points.length - 1 ? 3 : 1.8} fill="#1b4f9c" />)}
+      <polyline points={points.map((p, i) => `${x(i)},${y(p)}`).join(" ")} fill="none" stroke="#0d6e57" strokeWidth="1.6" />
+      {points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p)} r={i === points.length - 1 ? 3 : 1.8} fill="#0d6e57" />)}
     </svg>
   );
 }

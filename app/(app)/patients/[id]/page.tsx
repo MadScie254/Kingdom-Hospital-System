@@ -101,7 +101,7 @@ function Profile({ id }: { id: number }) {
             </div>
             <div className="space-y-5">
               {adm && bed && (
-                <section className="card border-brand-100 bg-brand-50 p-5"><h2 className="card-title text-brand">Currently admitted</h2><p className="mt-1 text-[13px]">{bed.ward}, bed {bed.code}. Since {fmtDateTime(adm.admittedAt)} for {adm.diagnosis.toLowerCase()}, under {L.doctorName(adm.doctorId)}.</p></section>
+                <section className="card border-[#c4dfee] bg-info-50 p-5"><h2 className="card-title text-info">Currently admitted</h2><p className="mt-1 text-[13px]">{bed.ward}, bed {bed.code}. Since {fmtDateTime(adm.admittedAt)} for {adm.diagnosis.toLowerCase()}, under {L.doctorName(adm.doctorId)}.</p></section>
               )}
               <section className="card p-5">
                 <h2 className="card-title mb-3">Contact</h2>

@@ -16,7 +16,7 @@ const def: ResourceDef = {
   }),
   stats: (r) => [
     { label: "Registered patients", value: r.length, icon: Users, tone: "brand" },
-    { label: "New this month", value: r.filter((p) => p.registered >= ANCHOR.slice(0, 8) + "01").length, icon: UserPlus, tone: "teal" },
+    { label: "New this month", value: r.filter((p) => p.registered >= ANCHOR.slice(0, 8) + "01").length, icon: UserPlus, tone: "steel" },
     { label: "Covered by SHA", value: r.filter((p) => p.shaNumber).length, hint: `${r.filter((p) => !p.shaNumber).length} without a SHA number`, icon: ShieldCheck, tone: "ok" },
     { label: "With a balance", value: r.filter((p) => p.balance > 0).length, icon: AlertTriangle, tone: "warn" },
   ],

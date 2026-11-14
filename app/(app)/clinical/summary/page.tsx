@@ -29,9 +29,9 @@ export default function Summary() {
         actions={p && <button className="btn btn-primary" onClick={() => window.print()}><Printer size={15} />Print summary</button>} />
       <div className="no-print mb-5 max-w-md"><Field label="Patient"><select className="input" value={pid} onChange={(e) => setPid(e.target.value)}><option value="">Choose a patient</option>{d.patients.map((x) => <option key={x.id} value={x.id}>{x.name} ({x.mrn})</option>)}</select></Field></div>
       {!p ? <section className="card"><Empty title="Choose a patient to build the summary" hint="The summary reads straight from visits, laboratory, prescriptions and admissions, so it is always current." /></section> : (
-        <article className="print-sheet mx-auto max-w-[900px] rounded-[10px] border border-line bg-white p-10 shadow-[0_2px_18px_rgba(12,31,58,0.07)]">
+        <article className="print-sheet mx-auto max-w-[900px] rounded-[10px] border border-line bg-white p-5 shadow-[0_2px_18px_rgba(11, 43, 38,0.07)] sm:p-10 sm:shadow-[0_2px_18px_rgba(11, 43, 38,0.07)]">
           <DocHeader title="Patient summary" lines={[{ k: "Prepared", v: fmtDate("2026-11-14") }, { k: "Record number", v: p.mrn }]} />
-          <section className="mt-6 grid grid-cols-2 gap-8 text-[13px]">
+          <section className="mt-6 grid grid-cols-1 gap-6 text-[13px] sm:grid-cols-2 sm:gap-8">
             <div><div className="text-xl font-semibold">{p.name}</div><div className="mt-1 text-muted">{age(p.dob)} years, {p.gender}, {p.bloodGroup || "blood group unknown"}</div><div className="text-muted">{p.phone}, {p.address}</div></div>
             <div className="space-y-1.5"><div><span className="text-muted">Cover: </span>{p.shaNumber ? `SHA ${p.shaNumber}` : p.insurer}</div><div><span className="text-muted">Next of kin: </span>{p.nextOfKin}, {p.nextOfKinPhone}</div><div><span className="text-muted">Outstanding balance: </span>{kes(bal, 0)}</div></div>
           </section>

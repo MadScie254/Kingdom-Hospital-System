@@ -7,14 +7,14 @@ import { Field, PageHeader, toast } from "@/components/ui";
 import { ANCHOR } from "@/lib/format";
 
 const COND: Record<string, { fill: string; stroke: string; text: string }> = {
-  Healthy: { fill: "#ffffff", stroke: "#b7c2d4", text: "#14213a" },
+  Healthy: { fill: "#ffffff", stroke: "#b4c3bb", text: "#12231e" },
   Caries: { fill: "#f6c9c5", stroke: "#b42318", text: "#7a1a12" },
-  Filled: { fill: "#c9dcf5", stroke: "#1b4f9c", text: "#12356b" },
+  Filled: { fill: "#cfe3f0", stroke: "#1d6a96", text: "#124d6e" },
   Crown: { fill: "#f1dfae", stroke: "#b58a2b", text: "#6b5014" },
-  "Root canal": { fill: "#c3e5e0", stroke: "#0f766e", text: "#0b4f49" },
+  "Root canal": { fill: "#cfe9e0", stroke: "#0d6e57", text: "#0a5845" },
   Impacted: { fill: "#fbe3bd", stroke: "#a35a06", text: "#6d3c04" },
-  Missing: { fill: "#eef0f4", stroke: "#a3aec0", text: "#8794ab" },
-  Extracted: { fill: "#d7dce5", stroke: "#5a6882", text: "#3b4760" },
+  Missing: { fill: "#edf0ee", stroke: "#a2b0a9", text: "#687b73" },
+  Extracted: { fill: "#d6ddd9", stroke: "#566a63", text: "#3a4d46" },
 };
 const UR = [18, 17, 16, 15, 14, 13, 12, 11], UL = [21, 22, 23, 24, 25, 26, 27, 28], LR = [48, 47, 46, 45, 44, 43, 42, 41], LL = [31, 32, 33, 34, 35, 36, 37, 38];
 
@@ -24,10 +24,10 @@ function Tooth({ n, cond, sel, onClick }: { n: number; cond: string; sel: boolea
   return (
     <button type="button" onClick={onClick} aria-pressed={sel} aria-label={`Tooth ${n}, ${cond || "Healthy"}`} className="group flex flex-col items-center gap-1">
       <svg width={molar ? 34 : 28} height="38" viewBox="0 0 34 38" className={clsx("transition-transform group-hover:-translate-y-0.5", sel && "drop-shadow")}>
-        <path d="M5 8c0-4 4-6 12-6s12 2 12 6c0 6-1 9-2 15-1 6-2 13-5 13-2 0-2-6-5-6s-3 6-5 6c-3 0-4-7-5-13-1-6-2-9-2-15Z" fill={c.fill} stroke={sel ? "#14213a" : c.stroke} strokeWidth={sel ? 2.4 : 1.4} strokeDasharray={cond === "Missing" ? "3 2" : undefined} />
-        {cond === "Extracted" && <path d="M9 10l16 16M25 10 9 26" stroke="#5a6882" strokeWidth="2" />}
+        <path d="M5 8c0-4 4-6 12-6s12 2 12 6c0 6-1 9-2 15-1 6-2 13-5 13-2 0-2-6-5-6s-3 6-5 6c-3 0-4-7-5-13-1-6-2-9-2-15Z" fill={c.fill} stroke={sel ? "#12231e" : c.stroke} strokeWidth={sel ? 2.4 : 1.4} strokeDasharray={cond === "Missing" ? "3 2" : undefined} />
+        {cond === "Extracted" && <path d="M9 10l16 16M25 10 9 26" stroke="#566a63" strokeWidth="2" />}
       </svg>
-      <span className="text-[11px] font-semibold tabular-nums" style={{ color: sel ? "#1b4f9c" : c.text }}>{n}</span>
+      <span className="text-[11px] font-semibold tabular-nums" style={{ color: sel ? "#0d6e57" : c.text }}>{n}</span>
     </button>
   );
 }
@@ -65,7 +65,7 @@ export default function NewDental() {
     <div>
       <PageHeader title={editId ? "Dental examination" : "New dental examination"} crumbs={[{ label: "Dental", href: "/dental" }, { label: editId ? "Examination" : "New examination" }]} description="Chart each tooth on the odontogram using FDI numbering. Select teeth, then choose a condition." />
       <div className="grid items-start gap-5 xl:grid-cols-[400px_1fr]">
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <section className="card card-pad space-y-4">
             <h2 className="card-title">Patient and dentist</h2>
             <Field label="Patient" required><select className="input" value={v.patientId} onChange={(e) => set("patientId", e.target.value)}><option value="">Select patient</option>{d.patients.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.mrn})</option>)}</select></Field>
@@ -79,9 +79,9 @@ export default function NewDental() {
             <Field label="Dental history"><textarea className="input" rows={2} value={v.dentalHistory || ""} onChange={(e) => set("dentalHistory", e.target.value)} placeholder="Previous treatment, oral hygiene habits" /></Field>
           </section>
         </div>
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <section className="card">
-            <div className="card-head"><h2 className="card-title">Odontogram</h2><div className="flex items-center gap-2"><label className="flex cursor-pointer items-center gap-2 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#1b4f9c]" checked={multi} onChange={(e) => { setMulti(e.target.checked); if (!e.target.checked) setSel(sel.slice(0, 1)); }} />Select several teeth</label><button className="btn btn-secondary btn-sm" onClick={() => { setTeeth({}); setSel([]); }}>Reset chart</button></div></div>
+            <div className="card-head"><h2 className="card-title">Odontogram</h2><div className="flex items-center gap-2"><label className="flex cursor-pointer items-center gap-2 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#0d6e57]" checked={multi} onChange={(e) => { setMulti(e.target.checked); if (!e.target.checked) setSel(sel.slice(0, 1)); }} />Select several teeth</label><button className="btn btn-secondary btn-sm" onClick={() => { setTeeth({}); setSel([]); }}>Reset chart</button></div></div>
             <div className="scroll-thin overflow-x-auto p-5">
               <div className="mx-auto min-w-[620px] max-w-[720px]">
                 <div className="mb-1 grid grid-cols-2 text-center text-xs text-muted"><span>Upper right</span><span>Upper left</span></div>

@@ -24,13 +24,13 @@ export default function Pharmacy() {
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Sales today" value={kes(m.today, 0)} icon={Wallet} tone="ok" />
         <Stat label="Sales this month" value={kes(m.month, 0)} icon={ShoppingCart} tone="brand" />
-        <Stat label="Medicines in formulary" value={d.medicines.length} icon={Pill} tone="teal" href="/medicines" />
+        <Stat label="Medicines in formulary" value={d.medicines.length} icon={Pill} tone="steel" href="/medicines" />
         <Stat label="Low or out of stock" value={m.low.length} hint={`${m.exp.length} expiring or expired`} icon={AlertTriangle} tone="warn" href="/medicines" />
       </div>
       <div className="grid gap-5 xl:grid-cols-3">
         <section className="card xl:col-span-2">
           <div className="card-head"><div><h2 className="card-title">Pharmacy sales, last 14 days</h2></div></div>
-          <div className="h-[240px] px-3 pb-3 pt-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={m.days} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}><CartesianGrid vertical={false} stroke="#e6ebf2" /><XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#5a6882" }} interval={1} /><YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#5a6882" }} width={48} tickFormatter={(v) => (v >= 1000 ? `${v / 1000}K` : String(v))} /><Tooltip cursor={{ fill: "#f3f5f8" }} contentStyle={{ borderRadius: 8, border: "1px solid #dde3ec", fontSize: 12 }} formatter={(v) => [kes(Number(v), 0), "Sales"]} /><Bar dataKey="total" fill="#0f766e" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer></div>
+          <div className="h-[240px] px-3 pb-3 pt-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={m.days} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}><CartesianGrid vertical={false} stroke="#e3ebe7" /><XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#566a63" }} interval={1} /><YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#566a63" }} width={48} tickFormatter={(v) => (v >= 1000 ? `${v / 1000}K` : String(v))} /><Tooltip cursor={{ fill: "#f2f5f3" }} contentStyle={{ borderRadius: 8, border: "1px solid #d9e2de", fontSize: 12 }} formatter={(v) => [kes(Number(v), 0), "Sales"]} /><Bar dataKey="total" fill="#0d6e57" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer></div>
         </section>
         <section className="card">
           <div className="card-head"><h2 className="card-title">Stock alerts</h2></div>

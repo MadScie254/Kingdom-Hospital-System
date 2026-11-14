@@ -91,7 +91,7 @@ function OrderDrawer({ onClose }: { onClose: () => void }) {
       <div className="mt-5"><div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" /><input className="input pl-9" placeholder="Search the test catalogue" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search tests" /></div></div>
       <ul className="mt-3 divide-y divide-line-2 rounded-lg border border-line">
         {list.map((t) => (
-          <li key={t.id}><label className="flex cursor-pointer items-center gap-3 px-3.5 py-2.5 text-[13px] hover:bg-surface"><input type="checkbox" className="h-4 w-4 accent-[#1b4f9c]" checked={picked.includes(t.id)} onChange={() => setPicked((p) => (p.includes(t.id) ? p.filter((x) => x !== t.id) : [...p, t.id]))} /><span className="flex-1"><span className="font-medium">{t.name}</span> <span className="text-xs text-muted">{t.category}</span></span><span className="tabular-nums text-muted">KES {t.price}</span></label></li>
+          <li key={t.id}><label className="flex cursor-pointer items-center gap-3 px-3.5 py-2.5 text-[13px] hover:bg-surface"><input type="checkbox" className="h-4 w-4 accent-[#0d6e57]" checked={picked.includes(t.id)} onChange={() => setPicked((p) => (p.includes(t.id) ? p.filter((x) => x !== t.id) : [...p, t.id]))} /><span className="flex-1"><span className="font-medium">{t.name}</span> <span className="text-xs text-muted">{t.category}</span></span><span className="tabular-nums text-muted">KES {t.price}</span></label></li>
         ))}
       </ul>
     </Drawer>
@@ -139,20 +139,20 @@ export default function Worklist() {
       <div className="no-print mb-4 flex flex-wrap items-center gap-2.5">
         <div className="relative w-full max-w-[280px]"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" /><input className="input pl-9" placeholder="Search patient or test" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search worklist" /></div>
         <select className="input w-auto" value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category"><option value="">Category: all</option>{[...new Set(d.labCatalog.map((t) => t.category))].map((c) => <option key={c}>{c}</option>)}</select>
-        <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#1b4f9c]" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} />Urgent only</label>
+        <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 text-[13px]"><input type="checkbox" className="h-4 w-4 accent-[#0d6e57]" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} />Urgent only</label>
       </div>
 
       <div className="scroll-thin -mx-1 flex gap-3 overflow-x-auto px-1 pb-3 xl:grid xl:grid-cols-5 xl:overflow-visible">
         {STAGES.map((s) => {
           const list = by(s).slice(0, s === "Released" ? 6 : 30);
           return (
-            <section key={s} className="flex min-h-[320px] w-[272px] shrink-0 flex-col rounded-[10px] bg-[#e9eef5] p-2.5 xl:w-auto" aria-label={STAGE_LABEL[s]}>
+            <section key={s} className="flex min-h-[320px] w-[272px] shrink-0 flex-col rounded-[10px] bg-[#e8eeeb] p-2.5 xl:w-auto" aria-label={STAGE_LABEL[s]}>
               <header className="mb-2.5 flex items-center justify-between px-1.5 pt-1"><h2 className="text-[13px] font-semibold">{STAGE_LABEL[s]}</h2><span className="rounded-full bg-white px-2 text-xs font-medium tabular-nums text-muted">{by(s).length}</span></header>
               <div className="space-y-2.5">
                 {list.map((o) => {
                   const t = tests.get(o.testId)!;
                   return (
-                    <article key={o.id} className="rounded-lg border border-line bg-white p-3 shadow-[0_1px_2px_rgba(12,31,58,0.05)]">
+                    <article key={o.id} className="rounded-lg border border-line bg-white p-3 shadow-[0_1px_2px_rgba(11, 43, 38,0.05)]">
                       <div className="flex items-start justify-between gap-2"><h3 className="text-[13px] font-semibold leading-snug">{t.name}</h3>{o.priority === "Urgent" && s !== "Released" && <Badge tone="bad" plain>Urgent</Badge>}</div>
                       <div className="mt-1 text-[13px]">{L.patientName(o.patientId)}</div>
                       <div className="mt-0.5 text-xs text-muted">{L.patient(o.patientId)?.mrn}, {o.source}, {fmtShort(o.orderedAt)} {fmtTime(o.orderedAt)}</div>

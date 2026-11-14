@@ -146,7 +146,7 @@ export default function NewInvoice() {
               <Field label="Method"><select className="input" value={method} onChange={(e) => setMethod(e.target.value)}>{["M Pesa", "Cash", "Card", "SHA", "Insurance"].map((m) => <option key={m}>{m}</option>)}</select></Field>
               <Field label="Reference"><input className="input" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="M Pesa code" /></Field>
             </div>
-            <label className="flex items-start gap-2.5 text-[13px]"><input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#1b4f9c]" checked={billSha} onChange={(e) => setBillSha(e.target.checked)} /><span>Create a draft SHA claim for this invoice<span className="block text-xs text-muted">Claims at 85% of the invoice total, ready to submit.</span></span></label>
+            <label className="flex items-start gap-2.5 text-[13px]"><input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#0d6e57]" checked={billSha} onChange={(e) => setBillSha(e.target.checked)} /><span>Create a draft SHA claim for this invoice<span className="block text-xs text-muted">Claims at 85% of the invoice total, ready to submit.</span></span></label>
           </>)}
           <div className="flex justify-between rounded-lg bg-brand-50 px-4 py-3 text-brand"><span className="font-semibold">Balance due</span><span className="text-lg font-semibold tabular-nums">{kes(totals.total - (editNo ? d.invoices.find((i) => i.no === editNo)?.paid || 0 : paidNow))}</span></div>
           {err && <p className="text-[13px] text-bad" role="alert">{err}</p>}

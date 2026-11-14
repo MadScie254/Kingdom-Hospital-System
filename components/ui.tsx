@@ -48,16 +48,16 @@ export function PageHeader({ title, description, crumbs, actions }: { title: str
   );
 }
 
-const TONE_BG: Record<string, string> = { brand: "bg-brand-50 text-brand", ok: "bg-ok-50 text-ok", warn: "bg-warn-50 text-warn", bad: "bg-bad-50 text-bad", teal: "bg-teal-50 text-teal", gold: "bg-gold-50 text-gold", mute: "bg-surface text-muted" };
+const TONE_BG: Record<string, string> = { brand: "bg-brand-50 text-brand", ok: "bg-ok-50 text-ok", warn: "bg-warn-50 text-warn", bad: "bg-bad-50 text-bad", steel: "bg-steel-50 text-steel", gold: "bg-gold-50 text-gold", mute: "bg-surface text-muted" };
 export function Stat({ label, value, hint, tone = "brand", icon: Icon, href }: { label: string; value: React.ReactNode; hint?: React.ReactNode; tone?: string; icon?: React.ComponentType<{ size?: number }>; href?: string }) {
   const body = (
-    <div className={clsx("card flex items-start justify-between gap-3 p-4", href && "transition-colors hover:border-[#c3ccdb]")}>
+    <div className={clsx("card flex items-start justify-between gap-3 p-4", href && "transition-colors hover:border-[#bfcdc7]")}>
       <div className="min-w-0">
         <div className="text-xs font-medium text-muted">{label}</div>
-        <div className="mt-1.5 truncate text-[24px] font-semibold leading-none tabular-nums text-text">{value}</div>
+        <div className="mt-1.5 text-[20px] font-semibold leading-tight tabular-nums text-text sm:text-[24px]">{value}</div>
         {hint && <div className="mt-2 text-xs text-muted">{hint}</div>}
       </div>
-      {Icon && <span className={clsx("grid h-9 w-9 shrink-0 place-items-center rounded-lg", TONE_BG[tone])}><Icon size={18} /></span>}
+      {Icon && <span className={clsx("hidden h-9 w-9 shrink-0 place-items-center rounded-lg sm:grid", TONE_BG[tone])}><Icon size={18} /></span>}
     </div>
   );
   return href ? <Link href={href}>{body}</Link> : body;
@@ -137,7 +137,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
           <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </header>
         <div className="scroll-thin flex-1 overflow-y-auto px-6 py-5">{children}</div>
-        {footer && <footer className="flex items-center justify-end gap-2 border-t border-line bg-[#fafbfd] px-6 py-3.5">{footer}</footer>}
+        {footer && <footer className="flex items-center justify-end gap-2 border-t border-line bg-[#f9fbfa] px-6 py-3.5">{footer}</footer>}
       </aside>
     </div>
   );

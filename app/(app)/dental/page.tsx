@@ -10,7 +10,7 @@ const def: ResourceDef = {
   collection: "dental", title: "Dental examinations", singular: "examination", description: "Chairside examinations with charted teeth, plan and next visit.", addLabel: "New examination", addHref: "/dental/new", readOnly: true,
   rowHref: (r) => `/dental/new?edit=${r.id}`,
   stats: (r) => [
-    { label: "Total examinations", value: r.length, icon: Smile, tone: "teal" },
+    { label: "Total examinations", value: r.length, icon: Smile, tone: "steel" },
     { label: "Completed", value: r.filter((x) => x.status === "Completed").length, icon: CheckCircle2, tone: "ok" },
     { label: "Follow up required", value: r.filter((x) => x.status === "Follow up required").length, icon: CalendarClock, tone: "warn" },
     { label: "Drafts", value: r.filter((x) => x.status === "Draft").length, icon: ClipboardList, tone: "mute" },

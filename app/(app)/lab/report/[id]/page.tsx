@@ -28,9 +28,9 @@ export default function LabReport() {
         <div className="flex items-center gap-3"><Link href="/lab/results" className="btn btn-secondary btn-icon" aria-label="Back to results"><ArrowLeft size={16} /></Link><h1 className="text-xl font-semibold">Laboratory report</h1></div>
         <button className="btn btn-primary" onClick={() => window.print()}><Printer size={15} />Print or save PDF</button>
       </div>
-      <article className="print-sheet mx-auto max-w-[900px] rounded-[10px] border border-line bg-white p-10 shadow-[0_2px_18px_rgba(12,31,58,0.07)] sm:p-12">
+      <article className="print-sheet mx-auto max-w-[900px] rounded-[10px] border border-line bg-white p-5 shadow-[0_2px_18px_rgba(11, 43, 38,0.07)] sm:p-12">
         <DocHeader title="Laboratory report" lines={[{ k: "Report number", v: `LAB${String(order.id).padStart(5, "0")}` }, { k: "Requested", v: fmtDate(order.orderedAt) }, { k: "Reported", v: fmtDate(day) }]} />
-        <section className="mt-6 grid grid-cols-2 gap-8 border-b border-line-2 pb-6 text-[13px]">
+        <section className="mt-6 grid grid-cols-1 gap-6 border-b border-line-2 pb-6 text-[13px] sm:grid-cols-2 sm:gap-8">
           <dl className="grid grid-cols-[110px_1fr] gap-y-1.5"><dt className="text-muted">Patient</dt><dd className="font-semibold">{p?.name}</dd><dt className="text-muted">Record number</dt><dd>{p?.mrn}</dd><dt className="text-muted">Age and sex</dt><dd>{p ? `${age(p.dob)} years, ${p.gender}` : ""}</dd><dt className="text-muted">Phone</dt><dd>{p?.phone}</dd></dl>
           <dl className="grid grid-cols-[110px_1fr] gap-y-1.5"><dt className="text-muted">Requested by</dt><dd>{L.doctorName(order.doctorId)}</dd><dt className="text-muted">Source</dt><dd>{order.source}</dd><dt className="text-muted">Ordered</dt><dd>{dayName(day)} {fmtTime(order.orderedAt)}</dd><dt className="text-muted">Tests reported</dt><dd>{rows.length}</dd></dl>
         </section>
@@ -41,7 +41,7 @@ export default function LabReport() {
         {groups.map((g) => (
           <section key={g} className="mt-7 break-inside-avoid">
             <h2 className="mb-2 text-sm font-semibold text-ink">{g}</h2>
-            <table className="w-full text-[13px]">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-[13px]">
               <thead><tr className="border-b-2 border-brand text-left text-xs font-semibold text-muted"><th className="pb-2">Test</th><th className="w-28 pb-2 text-right">Result</th><th className="w-28 pb-2 pl-5">Flag</th><th className="w-36 pb-2">Reference range</th><th className="w-36 pb-2">Position in range</th><th className="w-28 pb-2">Trend</th></tr></thead>
               <tbody>
                 {rows.filter((r) => r.t.category === g).map((r) => {
@@ -59,7 +59,7 @@ export default function LabReport() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           </section>
         ))}
         <section className="mt-9 grid grid-cols-2 gap-10 text-[13px]">

@@ -13,8 +13,8 @@ export function Crest({ size = 34 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
       <rect width="40" height="40" rx="9" fill="#b58a2b" />
-      <path d="M20 7.5 24.2 12.2H15.8Z" fill="#0c1f3a" />
-      <path d="M17.2 14h5.6v5h5v5.6h-5v7.9h-5.6v-7.9h-5V19h5Z" fill="#0c1f3a" />
+      <path d="M20 7.5 24.2 12.2H15.8Z" fill="#0b2b26" />
+      <path d="M17.2 14h5.6v5h5v5.6h-5v7.9h-5.6v-7.9h-5V19h5Z" fill="#0b2b26" />
     </svg>
   );
 }
@@ -29,13 +29,13 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Crest />
         <div className="leading-tight">
           <div className="text-[15px] font-semibold text-white">Kingdom Hospital</div>
-          <div className="text-[11.5px] text-[#8ea2c3]">Level 4 hospital, Nairobi</div>
+          <div className="text-[11.5px] text-[#92b8ac]">Level 4 hospital, Nairobi</div>
         </div>
       </div>
       <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-6">
         {NAV.map((g) => (
           <div key={g.heading} className="mt-4 first:mt-1">
-            <div className="px-3 pb-1.5 text-[11.5px] font-medium text-[#7389ad]">{g.heading}</div>
+            <div className="px-3 pb-1.5 text-[11.5px] font-medium text-[#78a094]">{g.heading}</div>
             <ul className="space-y-0.5">
               {g.items.map((it) => {
                 const Icon = it.icon;
@@ -89,7 +89,7 @@ function GlobalSearch() {
   return (
     <div className="relative w-full max-w-md">
       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
-      <input className="input h-9 bg-surface pl-9" placeholder="Find a patient by name, record number or phone" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Find a patient" />
+      <input className="input h-9 bg-surface pl-9" placeholder="Search patients" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Find a patient" />
       {hits.length > 0 && (
         <ul className="absolute left-0 right-0 top-11 z-50 overflow-hidden rounded-lg border border-line bg-white shadow-xl">
           {hits.map((p) => (

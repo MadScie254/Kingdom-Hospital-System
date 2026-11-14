@@ -71,10 +71,10 @@ function InvoiceView({ id }: { id: string }) {
         </div>
       </div>
 
-      <article className="print-sheet mx-auto max-w-[880px] rounded-[10px] border border-line bg-white p-10 shadow-[0_2px_18px_rgba(12,31,58,0.07)] sm:p-12">
+      <article className="print-sheet mx-auto max-w-[880px] rounded-[10px] border border-line bg-white p-5 shadow-[0_2px_18px_rgba(11, 43, 38,0.07)] sm:p-12">
         <DocHeader title="Invoice" lines={[{ k: "Invoice number", v: inv.no }, { k: "Date issued", v: fmtDate(inv.date) }, { k: "Payment due", v: fmtDate(inv.dueDate) }]} />
 
-        <section className="mt-7 grid grid-cols-2 gap-8 text-[13px]">
+        <section className="mt-7 grid grid-cols-1 gap-6 text-[13px] sm:grid-cols-2 sm:gap-8">
           <div>
             <h2 className="mb-1.5 text-xs font-semibold text-muted">Bill to</h2>
             <div className="text-[15px] font-semibold">{p?.name}</div>
@@ -91,16 +91,16 @@ function InvoiceView({ id }: { id: string }) {
           </div>
         </section>
 
-        <table className="mt-8 w-full text-[13px]">
+        <div className="mt-8 overflow-x-auto"><table className="w-full min-w-[480px] text-[13px]">
           <thead><tr className="border-b-2 border-brand text-left text-xs font-semibold text-muted"><th className="w-8 pb-2">No</th><th className="pb-2">Description</th><th className="w-16 pb-2 text-right">Qty</th><th className="w-28 pb-2 text-right">Rate</th><th className="w-32 pb-2 text-right">Amount</th></tr></thead>
           <tbody>
             {inv.items.map((l: any, i: number) => (
               <tr key={i} className="border-b border-line-2"><td className="py-3 text-muted tabular-nums">{i + 1}</td><td className="py-3 font-medium">{l.description}</td><td className="py-3 text-right tabular-nums">{l.qty}</td><td className="py-3 text-right tabular-nums">{kes(l.price)}</td><td className="py-3 text-right font-medium tabular-nums">{kes(l.qty * l.price)}</td></tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
 
-        <section className="mt-6 grid grid-cols-[1fr_300px] gap-10">
+        <section className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-[1fr_300px] sm:gap-10">
           <div className="text-[13px] leading-relaxed">
             <h2 className="mb-1.5 text-xs font-semibold text-muted">How to pay</h2>
             <p>M Pesa: Paybill <strong>{h.mpesaPaybill}</strong>, account number <strong>{p?.mrn}</strong></p>
@@ -114,7 +114,7 @@ function InvoiceView({ id }: { id: string }) {
             {t.vat > 0 && <div className="flex justify-between"><dt className="text-muted">VAT ({inv.vatPct}%)</dt><dd className="tabular-nums">{kes(t.vat)}</dd></div>}
             <div className="flex justify-between border-t border-line pt-2 font-semibold"><dt>Total</dt><dd className="tabular-nums">{kes(t.total)}</dd></div>
             <div className="flex justify-between"><dt className="text-muted">Payments received</dt><dd className="tabular-nums text-ok">{kes(-inv.paid)}</dd></div>
-            <div className={`flex items-center justify-between rounded-lg px-4 py-3.5 ${balance <= 0 && inv.status !== "Draft" ? "bg-ok-50 text-ok" : "bg-brand-50 text-brand"}`}>
+            <div className={`flex items-center justify-between rounded-lg px-4 py-3.5 ${balance <= 0 && inv.status !== "Draft" ? "bg-ok-50 text-ok" : overdue ? "bg-bad-50 text-bad" : "bg-ink text-white"}`}>
               <dt className="font-semibold">{balance <= 0 && inv.status !== "Draft" ? "Paid in full" : "Balance due"}</dt><dd className="text-xl font-semibold tabular-nums">{kes(Math.max(balance, 0))}</dd>
             </div>
           </dl>

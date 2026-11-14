@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { RESOURCES, type Ctx, type FieldDef, type ResourceDef } from "@/lib/registry";
-import { db, useDB, useLookup } from "@/lib/store";
+import { canWrite } from "@/lib/access";
+import { db, useDB, useLookup, useUser } from "@/lib/store";
 import type { Row } from "@/lib/seed";
 import { DataTable, Drawer, Field, FormGrid, PageHeader, Stat, Tabs, toast, useConfirm, type Col } from "./ui";
 
@@ -74,6 +75,8 @@ export function ResourcePage({ k, embedded, def: given }: { k?: string; embedded
 
 function Inner({ def, embedded }: { def: ResourceDef; embedded?: boolean }) {
   const d = useDB();
+  const user = useUser();
+  const writable = !def.readOnly && canWrite(user?.role, def.collection);
   const lookup = useLookup();
   const ctx: Ctx = { ...lookup, db: d };
   const all = def.derive ? def.derive(ctx) : (d[def.collection] as Row[]);
@@ -84,24 +87,24 @@ function Inner({ def, embedded }: { def: ResourceDef; embedded?: boolean }) {
   const tabbed = def.tabs ? all.filter(def.tabs[tab].test) : all;
   const cols = useMemo(() => {
     const base = def.cols(ctx) as Col<Row>[];
-    if (def.readOnly && !def.rowHref && !def.extra) return base;
+    if (!writable && !def.rowHref && !def.extra) return base;
     const actions: Col<Row> = {
       key: "actions", header: "", align: "right", width: 130,
       render: (r) => (
         <div className="flex justify-end gap-1">
           {def.rowHref && <Link href={def.rowHref(r)} className="btn btn-ghost btn-sm btn-icon" aria-label="Open"><Eye size={15} /></Link>}
           {def.extra?.(r, ctx)}
-          {!def.readOnly && !def.noEdit && <button className="btn btn-ghost btn-sm btn-icon" aria-label="Edit" onClick={() => setForm({ row: r })}><Pencil size={15} /></button>}
-          {!def.readOnly && <button className="btn btn-ghost btn-sm btn-icon hover:!text-bad" aria-label="Delete" onClick={() => ask(`Delete this ${def.singular}?`, "This removes the record from the system. It cannot be undone.", async () => { if (await db.remove(def.collection, r.id)) toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} deleted`); })}><Trash2 size={15} /></button>}
+          {writable && !def.noEdit && <button className="btn btn-ghost btn-sm btn-icon" aria-label="Edit" onClick={() => setForm({ row: r })}><Pencil size={15} /></button>}
+          {writable && <button className="btn btn-ghost btn-sm btn-icon hover:!text-bad" aria-label="Delete" onClick={() => ask(`Delete this ${def.singular}?`, "This removes the record from the system. It cannot be undone.", async () => { if (await db.remove(def.collection, r.id)) toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} deleted`); })}><Trash2 size={15} /></button>}
         </div>
       ),
     };
     return [...base, actions];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [def, d]);
+  }, [def, d, writable]);
 
   const FormC = def.form;
-  const addBtn = !def.readOnly && (def.addHref
+  const addBtn = writable && (def.addHref
     ? <Link href={def.addHref} className="btn btn-primary"><Plus size={16} />{def.addLabel}</Link>
     : <button className="btn btn-primary" onClick={() => setForm({ row: null })}><Plus size={16} />{def.addLabel || `Add ${def.singular}`}</button>);
   const stats = def.stats?.(all, ctx);

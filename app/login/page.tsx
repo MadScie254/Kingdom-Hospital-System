@@ -53,15 +53,16 @@ export default function Login() {
         <form className="w-full max-w-[380px]" onSubmit={submit}>
           <div className="mb-8 lg:hidden"><Logo height={60} /></div>
           <h2 className="text-2xl font-semibold">Sign in</h2>
-          <p className="mt-1.5 text-[13px] text-muted">Use the email and password your administrator gave you.</p>
+          <p className="mt-1.5 text-[13px] text-muted">Use your email and password. First time here? Use the temporary password from your approval email.</p>
           <div className="mt-7 space-y-4">
             <label className="block"><span className="label">Email</span><input className="input h-10" name="email" type="email" autoComplete="username" required autoFocus /></label>
             <label className="block"><span className="label">Password</span><input className="input h-10" name="password" type="password" autoComplete="current-password" required /></label>
+            <div className="-mt-1 text-right"><Link href="/forgot" className="text-[13px] font-medium text-brand hover:underline">Forgot your password?</Link></div>
           </div>
           {error && <p className="mt-4 rounded-md bg-bad-50 px-3 py-2 text-[13px] text-bad" role="alert">{error}</p>}
           <button className="btn btn-primary mt-6 h-10 w-full" disabled={busy}>{busy ? "Signing in" : "Sign in"}</button>
           <p className="mt-6 text-center text-[13px] text-muted">New to the hospital? <Link href="/signup" className="font-medium text-brand hover:underline">Request access</Link></p>
-          <p className="mt-3 text-center text-xs leading-relaxed text-muted">Forgot your password? Ask the administrator to reset it. Patient records are confidential and every change is logged against your name.</p>
+          <p className="mt-3 text-center text-xs leading-relaxed text-muted">Patient records are confidential and every change is logged against your name.</p>
         </form>
       </section>
     </div>

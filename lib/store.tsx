@@ -8,6 +8,38 @@ import { emptyDB, type CollectionName, type DB, type Row } from "./collections";
 export type User = { id: number; email: string; name: string; role: Role; departments: number[]; position?: string | null; mustChange?: boolean };
 type Status = "loading" | "ready" | "unauth" | "error";
 
+/** Text the screens read with string methods. A row saved or imported without one is given an empty value so a single odd row cannot break a screen. */
+const TEXT: Partial<Record<CollectionName, string[]>> = {
+  patients: ["mrn", "name", "phone", "dob", "registered"],
+  visits: ["date", "complaint", "diagnosis", "treatment", "status"],
+  appointments: ["date", "status", "reason", "type"],
+  labOrders: ["orderedAt", "status"],
+  prescriptions: ["date"],
+  pharmacySales: ["date"],
+  payments: ["invoiceNo", "date", "method"],
+  expenses: ["date", "description", "category"],
+  emergencies: ["type", "description", "status", "priority", "arrived"],
+  admissions: ["admittedAt", "diagnosis", "status"],
+  invoices: ["no", "date", "dueDate", "status"],
+  dental: ["date", "complaint", "status"],
+  shaClaims: ["claimNo", "invoiceNo", "status"],
+  medicines: ["name", "category", "expiry"],
+  inventory: ["item", "category", "expiry"],
+};
+const LISTS: Partial<Record<CollectionName, string[]>> = { prescriptions: ["items"], invoices: ["items"], pharmacySales: ["lines"] };
+function tidy(c: string, rows: Row[]): Row[] {
+  const fields = TEXT[c as CollectionName] || [], lists = LISTS[c as CollectionName] || [], teeth = c === "dental";
+  if (!fields.length && !lists.length && !teeth) return rows;
+  return rows.map((r) => {
+    let out = r;
+    const fix = (k: string, v: unknown) => { if (out === r) out = { ...r }; out[k] = v; };
+    for (const f of fields) if (typeof r[f] !== "string") fix(f, "");
+    for (const f of lists) if (!Array.isArray(r[f])) fix(f, []);
+    if (teeth && (!r.teeth || typeof r.teeth !== "object")) fix("teeth", {});
+    return out;
+  });
+}
+
 const EMPTY = emptyDB();
 let state: DB = EMPTY;
 let status: Status = "loading";
@@ -30,7 +62,7 @@ export function loadAll(): Promise<void> {
   inflight = (async () => {
     try {
       const r = await api<{ user: User; data: DB; pending?: number }>("/api/data");
-      state = { ...emptyDB(), ...r.data };
+      state = { ...emptyDB(), ...Object.fromEntries(Object.entries(r.data).map(([c, rows]) => [c, tidy(c, rows as Row[])])) } as DB;
       me = r.user;
       pending = r.pending || 0;
       status = "ready";
@@ -55,7 +87,7 @@ function merge(changes: Record<string, Row[]>) {
   const next = { ...state };
   for (const [c, rows] of Object.entries(changes)) {
     let list = [...(next[c as CollectionName] || [])];
-    for (const r of rows) {
+    for (const r of tidy(c, rows)) {
       const i = list.findIndex((x) => x.id === r.id);
       if (i >= 0) list[i] = r; else list = [r, ...list];
     }

@@ -5,13 +5,15 @@ import { useState } from "react";
 import { BedDouble, CalendarPlus, FlaskConical, Pencil, Receipt, AlertTriangle, Phone, Mail, MapPin, IdCard, UserRound } from "lucide-react";
 import { ResourcePage } from "@/components/resource";
 import { RESOURCES } from "@/lib/registry";
-import { useDB, useLookup } from "@/lib/store";
+import { ACTION_ROLES, canRead, canWrite } from "@/lib/access";
+import type { CollectionName } from "@/lib/collections";
+import { useDB, useLookup, useUser } from "@/lib/store";
 import { Avatar, Badge, Status, Tabs, Empty } from "@/components/ui";
 import { FlagBadge } from "@/components/lab";
 import { invoiceTotals } from "@/lib/billing";
 import { rangeText } from "@/lib/lab";
 import type { Row } from "@/lib/seed";
-import { age, fmtDate, fmtDateTime, fmtTime, kes } from "@/lib/format";
+import { age, ANCHOR, fmtDate, fmtDateTime, fmtTime, kes } from "@/lib/format";
 
 export default function Page() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +30,8 @@ function Profile({ id }: { id: number }) {
   const d = useDB();
   const L = useLookup();
   const [tab, setTab] = useState("overview");
+  const role = useUser()?.role;
+  const can = (c: CollectionName) => canRead(role, c);
   const p = d.patients.find((x) => x.id === id);
   if (!p) { if (d.patients.length) notFound(); return null; }
 
@@ -40,10 +44,24 @@ function Profile({ id }: { id: number }) {
   const claims = d.shaClaims.filter((c) => c.patientId === id);
   const adm = d.admissions.find((a) => a.patientId === id && a.status === "Admitted");
   const bed = adm && d.beds.find((b) => b.id === adm.bedId);
-  const next = d.appointments.filter((a) => a.patientId === id && a.date >= "2026-11-14" && a.status !== "Cancelled").sort((a, b) => a.date.localeCompare(b.date))[0];
+  const next = d.appointments.filter((a) => a.patientId === id && a.date >= ANCHOR && a.status !== "Cancelled").sort((a, b) => a.date.localeCompare(b.date))[0];
   const last = visits[0];
   const bmi = p.heightCm && p.weightKg ? (p.weightKg / (p.heightCm / 100) ** 2).toFixed(1) : "";
   const hasAllergy = p.allergies && p.allergies !== "None known";
+
+  const stats: [string, React.ReactNode][] = [];
+  if (can("invoices")) stats.push(["Outstanding balance", <span key="b" className={balance > 0 ? "text-bad" : "text-ok"}>{kes(balance, 0)}</span>]);
+  if (can("visits")) stats.push(["Last visit", last ? fmtDate(last.date) : "No visits yet"]);
+  if (can("appointments")) stats.push(["Next appointment", next ? `${fmtDate(next.date)} ${fmtTime(next.date)}` : "None booked"]);
+  if (can("visits")) stats.push(["Total visits", visits.length]);
+  const tabs = [
+    { value: "overview", label: "Overview" },
+    ...(can("visits") ? [{ value: "visits", label: "Visits", count: visits.length }] : []),
+    ...(can("labOrders") ? [{ value: "lab", label: "Laboratory", count: labs.length }] : []),
+    ...(can("prescriptions") ? [{ value: "meds", label: "Medication", count: rx.length }] : []),
+    ...(can("invoices") ? [{ value: "billing", label: "Billing", count: invs.length }] : []),
+    ...(can("documents") || can("shaClaims") ? [{ value: "docs", label: "Documents and claims", count: docs.length + claims.length }] : []),
+  ];
 
   return (
     <div>
@@ -57,33 +75,35 @@ function Profile({ id }: { id: number }) {
               <div className="mt-1 text-[13px] text-muted">{p.mrn}, {age(p.dob)} years, {p.gender}, born {fmtDate(p.dob)}</div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge tone="info" plain>{p.bloodGroup || "Blood group unknown"}</Badge>
-                <Badge tone={p.shaNumber ? "ok" : "mute"} plain>{p.shaNumber ? `SHA ${p.shaNumber}` : p.insurer}</Badge>
+                {(p.shaNumber || p.insurer) && <Badge tone={p.shaNumber ? "ok" : "mute"} plain>{p.shaNumber ? `SHA ${p.shaNumber}` : p.insurer}</Badge>}
                 {adm && <Badge tone="info">Admitted, {bed?.code}</Badge>}
                 {hasAllergy && <Badge tone="bad"><AlertTriangle size={11} />Allergy: {p.allergies}</Badge>}
               </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href={`/patients/new?edit=${p.id}`} className="btn btn-secondary"><Pencil size={15} />Edit</Link>
-            <Link href="/appointments" className="btn btn-secondary"><CalendarPlus size={15} />Book</Link>
-            <Link href="/lab" className="btn btn-secondary"><FlaskConical size={15} />Order lab</Link>
-            {!adm && <Link href="/admissions" className="btn btn-secondary"><BedDouble size={15} />Admit</Link>}
-            <Link href="/billing/new" className="btn btn-primary"><Receipt size={15} />New invoice</Link>
+            {canWrite(role, "patients") && <Link href={`/patients/new?edit=${p.id}`} className="btn btn-secondary"><Pencil size={15} />Edit</Link>}
+            {canWrite(role, "appointments") && <Link href="/appointments" className="btn btn-secondary"><CalendarPlus size={15} />Book</Link>}
+            {canWrite(role, "labOrders") && <Link href="/lab" className="btn btn-secondary"><FlaskConical size={15} />Order lab</Link>}
+            {!adm && !!role && ACTION_ROLES["admission.admit"].includes(role) && <Link href="/admissions" className="btn btn-secondary"><BedDouble size={15} />Admit</Link>}
+            {!!role && ACTION_ROLES["invoice.create"].includes(role) && <Link href="/billing/new" className="btn btn-primary"><Receipt size={15} />New invoice</Link>}
           </div>
         </div>
-        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line-2 bg-line-2 md:grid-cols-4">
-          {[["Outstanding balance", <span key="b" className={balance > 0 ? "text-bad" : "text-ok"}>{kes(balance, 0)}</span>], ["Last visit", last ? fmtDate(last.date) : "No visits yet"], ["Next appointment", next ? `${fmtDate(next.date)} ${fmtTime(next.date)}` : "None booked"], ["Total visits", visits.length]].map(([k, v], i) => (
-            <div key={i} className="bg-white px-4 py-3"><dt className="text-xs text-muted">{k}</dt><dd className="mt-0.5 text-[15px] font-semibold tabular-nums">{v}</dd></div>
-          ))}
-        </dl>
+        {stats.length > 0 && (
+          <dl className={`mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line-2 bg-line-2 ${stats.length === 4 ? "md:grid-cols-4" : stats.length === 3 ? "md:grid-cols-3" : ""}`}>
+            {stats.map(([k, v], i) => (
+              <div key={i} className="bg-white px-4 py-3"><dt className="text-xs text-muted">{k}</dt><dd className="mt-0.5 text-[15px] font-semibold tabular-nums">{v}</dd></div>
+            ))}
+          </dl>
+        )}
       </section>
 
-      <div className="mt-5"><Tabs value={tab} onChange={setTab} tabs={[{ value: "overview", label: "Overview" }, { value: "visits", label: "Visits", count: visits.length }, { value: "lab", label: "Laboratory", count: labs.length }, { value: "meds", label: "Medication", count: rx.length }, { value: "billing", label: "Billing", count: invs.length }, { value: "docs", label: "Documents and claims", count: docs.length + claims.length }]} /></div>
+      <div className="mt-5"><Tabs value={tab} onChange={setTab} tabs={tabs} /></div>
 
       <div className="mt-5">
         {tab === "overview" && (
-          <div className="grid gap-5 xl:grid-cols-3">
-            <div className="space-y-5 xl:col-span-2">
+          <div className={`grid gap-5 ${can("visits") ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
+            {can("visits") && <div className="space-y-5 xl:col-span-2">
               <section className="card">
                 <div className="card-head"><h2 className="card-title">Latest vitals</h2><span className="text-xs text-muted">{last ? fmtDateTime(last.date) : ""}</span></div>
                 {last ? <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 lg:grid-cols-5"><Vital label="Blood pressure" value={last.bp} unit="mmHg" /><Vital label="Temperature" value={last.temp} unit="C" /><Vital label="Pulse" value={last.pulse} unit="bpm" /><Vital label="Oxygen saturation" value={last.spo2} unit="%" /><Vital label="Weight" value={last.weight} unit="kg" /></div> : <Empty title="No vitals recorded" hint="Vitals appear after the first consultation." />}
@@ -98,7 +118,7 @@ function Profile({ id }: { id: number }) {
                   {visits.length === 0 && <li><Empty title="No consultations yet" /></li>}
                 </ul>
               </section>
-            </div>
+            </div>}
             <div className="space-y-5">
               {adm && bed && (
                 <section className="card border-[#c9dcef] bg-info-50 p-5"><h2 className="card-title text-info">Currently admitted</h2><p className="mt-1 text-[13px]">{bed.ward}, bed {bed.code}. Since {fmtDateTime(adm.admittedAt)} for {adm.diagnosis.toLowerCase()}, under {L.doctorName(adm.doctorId)}.</p></section>

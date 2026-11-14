@@ -12,12 +12,12 @@ type Pub = { hospital: { name?: string; email?: string; phone?: string }; depart
 const STEPS = [
   { icon: ClipboardCheck, title: "Send your request", text: "Tell us who you are and which departments you work in." },
   { icon: ShieldCheck, title: "The administrator approves", text: "They confirm you and give you the right access." },
-  { icon: Smartphone, title: "Sign in anywhere", text: "Use your phone, a tablet or any computer." },
+  { icon: Smartphone, title: "Check your email", text: "You get a temporary password. Sign in on any phone, tablet or computer and choose your own." },
 ];
 
 export default function Signup() {
   const [pub, setPub] = useState<Pub | null>(null);
-  const [v, setV] = useState({ name: "", email: "", phone: "", position: "", licence: "", password: "", again: "", website: "" });
+  const [v, setV] = useState({ name: "", email: "", phone: "", position: "", licence: "", website: "" });
   const [deps, setDeps] = useState<number[]>([]);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -28,7 +28,6 @@ export default function Signup() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
-    if (v.password !== v.again) { setErr("The two passwords do not match."); return; }
     setBusy(true);
     try { await api("/api/signup", { method: "POST", body: { ...v, departments: deps } }); setDone(true); }
     catch (x) { setErr(x instanceof ApiError ? x.message : "Could not reach the server. Check your connection and try again."); }
@@ -55,7 +54,7 @@ export default function Signup() {
           <div className="w-full max-w-[420px] text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok-50 text-ok"><CheckCircle2 size={28} /></span>
             <h2 className="mt-5 text-2xl font-semibold">Request sent</h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-muted">The hospital administrator will review it, confirm your role and add you to your departments. You can sign in with the email and password you just chose once it is approved.</p>
+            <p className="mt-2 text-[14px] leading-relaxed text-muted">The hospital administrator will review it, confirm your role and add you to your departments. When it is approved you will receive an email with a temporary password. Sign in with it, then choose your own password.</p>
             {pub?.hospital.email && <p className="mt-4 text-[13px] text-muted">Questions? Contact {pub.hospital.email}{pub.hospital.phone ? ` or ${pub.hospital.phone}` : ""}.</p>}
             <Link href="/login" className="btn btn-primary mt-7 h-10 px-6">Back to sign in</Link>
           </div>
@@ -63,7 +62,7 @@ export default function Signup() {
           <form className="w-full max-w-[460px]" onSubmit={submit}>
             <div className="mb-6 lg:hidden"><Logo height={56} /></div>
             <h2 className="text-2xl font-semibold">Request access</h2>
-            <p className="mt-1.5 text-[13px] text-muted">Use your own email address. Nothing opens until the administrator approves you.</p>
+            <p className="mt-1.5 text-[13px] text-muted">Use your own email address. The approval and your temporary password are sent to it.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <label className="block sm:col-span-2"><span className="label">Full name <span className="text-bad">*</span></span><input className="input h-10" value={v.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" required /></label>
               <label className="block"><span className="label">Email <span className="text-bad">*</span></span><input className="input h-10" type="email" value={v.email} onChange={(e) => set("email", e.target.value)} autoComplete="email" required /></label>
@@ -80,9 +79,6 @@ export default function Signup() {
                   {pub && pub.departments.length === 0 && <p className="text-[13px] text-muted">Departments could not be loaded. Refresh the page.</p>}
                 </div>
               </fieldset>
-              <label className="block"><span className="label">Password <span className="text-bad">*</span></span><input className="input h-10" type="password" value={v.password} onChange={(e) => set("password", e.target.value)} autoComplete="new-password" minLength={10} required /></label>
-              <label className="block"><span className="label">Repeat password <span className="text-bad">*</span></span><input className="input h-10" type="password" value={v.again} onChange={(e) => set("again", e.target.value)} autoComplete="new-password" minLength={10} required /></label>
-              <p className="text-xs text-muted sm:col-span-2">At least 10 characters. A long phrase is best. Do not reuse a password from another account.</p>
               <input className="hidden" tabIndex={-1} autoComplete="off" aria-hidden value={v.website} onChange={(e) => set("website", e.target.value)} name="website" />
             </div>
             {err && <p className="mt-4 rounded-md bg-bad-50 px-3 py-2 text-[13px] text-bad" role="alert">{err}</p>}

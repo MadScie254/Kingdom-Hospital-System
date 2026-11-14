@@ -1,7 +1,7 @@
 import { auditLast, guard, rowOf, sql, tbl } from "@/lib/server/db";
 import { canWrite } from "@/lib/access";
 import { handle, HttpError, ok, readBody, requireUser } from "@/lib/server/http";
-import { ACTION_ONLY, AUTO_NUMBER, cleanData, parseCollection } from "@/lib/server/policy";
+import { ACTION_ONLY, AUTO_NUMBER, cleanData, parseCollection, requireFields } from "@/lib/server/policy";
 import { TABLE } from "@/lib/collections";
 
 type Ctx = { params: Promise<{ collection: string }> };
@@ -12,6 +12,7 @@ export const POST = handle<Ctx>(async (req, { params }) => {
   if (!canWrite(u.role, c)) throw new HttpError(403, "Your role cannot add this kind of record.");
   if (ACTION_ONLY.has(c)) throw new HttpError(403, "Use the billing screens to create invoices and payments.");
   const data = cleanData(await readBody(req));
+  requireFields(c, data);
   const auto = AUTO_NUMBER[c];
   const s = sql();
   const [, rows] = await s.transaction([

@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import { db, useDB, useUser } from "@/lib/store";
 import { Field, PageHeader, toast } from "@/components/ui";
 import { Backups } from "@/components/backups";
+import { MailSettings } from "@/components/mail-settings";
 import { download } from "@/lib/format";
 
 const GROUPS: { title: string; hint: string; fields: [string, string, string?][] }[] = [
@@ -34,7 +35,7 @@ export default function Settings() {
 
   return (
     <div>
-      <PageHeader title="Settings" description={admin ? "Hospital details, payment instructions, backups and data tools." : "Your account. Hospital settings can only be changed by an administrator."}
+      <PageHeader title="Settings" description={admin ? "Hospital details, payment instructions, email, backups and data tools." : "Your account. Hospital settings can only be changed by an administrator."}
         actions={admin && <button className="btn btn-primary" onClick={save}>Save settings</button>} />
       <div className="space-y-5">
         {admin && GROUPS.map((g) => (
@@ -53,6 +54,7 @@ export default function Settings() {
             <div className="sm:col-span-2"><button className="btn btn-primary" onClick={changePassword}>Change password</button></div>
           </div>
         </section>
+        {admin && <MailSettings />}
         {admin && <Backups />}
         {admin && (
           <section className="card grid gap-6 p-6 lg:grid-cols-[240px_1fr]">

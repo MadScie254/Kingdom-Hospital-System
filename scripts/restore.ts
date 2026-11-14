@@ -34,7 +34,7 @@ async function main() {
   console.log(`Backup ${day}: ` + [...tables].map(([t, r]) => `${t} ${r.length}`).join(", "));
   if (flag !== "--yes") { console.log("Nothing changed. Add --yes to replace the database with this backup."); process.exit(0); }
 
-  const sql = neon(url);
+  const sql = neon(url!);
   const names = [...tables.keys()];
   await sql.transaction([
     sql.query(`truncate ${names.map((n) => `"${n}"`).join(", ")} restart identity`),

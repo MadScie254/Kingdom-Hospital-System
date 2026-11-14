@@ -96,3 +96,29 @@ create table if not exists backup_log (
 
 -- Temporary passwords must be replaced at first sign in
 alter table app_users add column if not exists must_change boolean not null default false;
+
+-- Email: settings the administrator saves in the app, a log of what was sent, and password reset links
+create table if not exists app_config (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+create table if not exists email_log (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  to_email text not null,
+  kind text not null,
+  subject text not null,
+  ok boolean not null,
+  error text
+);
+create index if not exists email_log_at_idx on email_log (at desc);
+create table if not exists password_resets (
+  id bigserial primary key,
+  user_id integer not null references app_users(id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists password_resets_user_idx on password_resets (user_id, created_at);

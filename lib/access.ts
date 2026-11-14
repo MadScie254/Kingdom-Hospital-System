@@ -40,17 +40,17 @@ export const READ: Record<Role, "*" | CollectionName[]> = {
 };
 export const WRITE: Record<Role, "*" | CollectionName[]> = {
   admin: "*",
-  doctor: ["patients", "visits", "appointments", "emergencies", "prescriptions", "labOrders", "imaging", "plans", "dental", "admissions", "beds", "documents", "holidays"],
+  doctor: ["patients", "visits", "appointments", "emergencies", "prescriptions", "labOrders", "imaging", "plans", "dental", "admissions", "beds", "documents", "holidays", "symptoms", "diagnoses", "treatments", "advice"],
   nurse: ["patients", "visits", "appointments", "emergencies", "labOrders", "admissions", "beds", "documents", "dental"],
-  lab: ["labOrders"],
+  lab: ["labOrders", "labCatalog"],
   pharmacy: ["medicines", "pharmacySales", "inventory"],
   reception: ["patients", "appointments", "emergencies", "documents", "bookings"],
   accounts: ["shaClaims", "expenses"],
   staff: [],
 };
 export const ACTION_ROLES: Record<string, Role[]> = {
-  "invoice.create": ["admin", "reception", "accounts", "doctor"],
-  "invoice.update": ["admin", "reception", "accounts", "doctor"],
+  "invoice.create": ["admin", "reception", "accounts"],
+  "invoice.update": ["admin", "reception", "accounts"],
   "payment.record": ["admin", "reception", "accounts"],
   "admission.admit": ["admin", "doctor", "nurse"],
   "admission.transfer": ["admin", "doctor", "nurse"],
@@ -61,30 +61,52 @@ export const ACTION_ROLES: Record<string, Role[]> = {
 export const canRead = (role: Role | undefined, c: CollectionName) => !!role && (READ[role] === "*" || (READ[role] as CollectionName[]).includes(c));
 export const canWrite = (role: Role | undefined, c: CollectionName) => !!role && (WRITE[role] === "*" || (WRITE[role] as CollectionName[]).includes(c));
 
-/** Top level screens by role. Screens not listed are open to everyone signed in. */
-const SCREENS: Record<string, Role[]> = {
-  emergency: ["admin", "doctor", "nurse", "reception"],
-  doctors: ["admin", "doctor", "nurse", "reception"],
-  patients: ["admin", "doctor", "nurse", "reception", "accounts"],
-  appointments: ["admin", "doctor", "nurse", "reception"],
-  prescriptions: ["admin", "doctor", "nurse", "pharmacy"],
-  dental: ["admin", "doctor", "nurse"],
-  clinical: ["admin", "doctor", "nurse"],
-  lab: ["admin", "doctor", "nurse", "lab"],
-  admissions: ["admin", "doctor", "nurse", "reception"],
-  ambulance: ["admin", "doctor", "nurse", "reception"],
-  pharmacy: ["admin", "pharmacy"],
-  medicines: ["admin", "pharmacy", "doctor"],
-  inventory: ["admin", "pharmacy", "nurse"],
-  billing: ["admin", "reception", "accounts"],
-  sha: ["admin", "accounts", "reception"],
-  reports: ["admin", "accounts"],
-  hr: ["admin"],
-  staff: ["admin"],
-  communications: ["admin"],
-};
+/** Screens by role. The longest matching path wins. Paths not listed are open to everyone signed in. */
+const SCREENS: [string, Role[]][] = [
+  ["/patients/payments", ["admin", "reception", "accounts"]],
+  ["/patients/new", ["admin", "doctor", "nurse", "reception"]],
+  ["/patients", ["admin", "doctor", "nurse", "reception"]],
+  ["/billing/expenses", ["admin", "accounts"]],
+  ["/billing/items", ["admin"]],
+  ["/billing", ["admin", "reception", "accounts"]],
+  ["/sha", ["admin", "accounts", "reception"]],
+  ["/reports", ["admin", "accounts"]],
+  ["/emergency", ["admin", "doctor", "nurse", "reception"]],
+  ["/doctors", ["admin", "doctor", "nurse", "reception"]],
+  ["/appointments", ["admin", "doctor", "nurse", "reception"]],
+  ["/prescriptions", ["admin", "doctor", "nurse", "pharmacy"]],
+  ["/dental", ["admin", "doctor", "nurse"]],
+  ["/clinical", ["admin", "doctor", "nurse"]],
+  ["/lab/catalogue", ["admin", "doctor", "nurse", "lab"]],
+  ["/lab", ["admin", "doctor", "nurse", "lab"]],
+  ["/admissions", ["admin", "doctor", "nurse", "reception"]],
+  ["/ambulance", ["admin", "doctor", "nurse", "reception"]],
+  ["/pharmacy", ["admin", "pharmacy"]],
+  ["/medicines", ["admin", "pharmacy", "doctor"]],
+  ["/inventory", ["admin", "pharmacy", "nurse"]],
+  ["/hr", ["admin"]],
+  ["/staff", ["admin"]],
+  ["/communications", ["admin"]],
+];
 export const canOpen = (role: Role | undefined, pathname: string) => {
   if (!role) return false;
-  const roles = SCREENS[pathname.split("/")[1] || ""];
-  return !roles || roles.includes(role);
+  const rule = SCREENS.filter(([p]) => pathname === p || pathname.startsWith(p + "/")).sort((a, b) => b[0].length - a[0].length)[0];
+  return !rule || rule[1].includes(role);
 };
+
+/** For the roles table on the Staff accounts page. */
+export const ACCESS_ROWS: { label: string; path: string }[] = [
+  { label: "Register patients and see the patient list", path: "/patients/new" },
+  { label: "Appointments and emergency", path: "/appointments" },
+  { label: "Consultations, dental, clinical tools", path: "/dental" },
+  { label: "Laboratory worklist and results", path: "/lab" },
+  { label: "Wards and admissions", path: "/admissions" },
+  { label: "Prescriptions", path: "/prescriptions" },
+  { label: "Pharmacy and point of sale", path: "/pharmacy" },
+  { label: "Invoices and recording payments", path: "/billing" },
+  { label: "Payments register", path: "/patients/payments" },
+  { label: "Expenses", path: "/billing/expenses" },
+  { label: "SHA claims", path: "/sha" },
+  { label: "Financial reports", path: "/reports" },
+  { label: "Staff accounts and settings", path: "/staff" },
+];

@@ -22,9 +22,30 @@ Connected workflows: an invoice creates its lab requests and a draft SHA claim, 
 
 ## Staff, roles and departments
 
-Anyone can ask for access at `/signup` with their own email, position, licence number and departments. The request stays pending and the person cannot sign in. The administrator opens **Staff accounts**, confirms the role, adjusts the departments and approves or declines. The bell and the dashboard show how many requests are waiting. Public signup is limited to five requests an hour per connection, and email addresses are not verified by link, so the administrator's approval is the safeguard.
+Anyone can ask for access at `/signup` with their own email, position, licence number and departments. They do not choose a password. The request stays pending and the person cannot sign in. The administrator opens **Staff accounts**, confirms the role, adjusts the departments and approves or declines. On approval the system makes a temporary password and emails it to the person, who signs in with it and must choose their own straight away. A declined person is told by email. The bell and the dashboard show how many requests are waiting. Public signup is limited to five requests an hour per connection, and the administrator's approval is the safeguard.
 
-Roles: `admin`, `doctor`, `nurse`, `lab`, `pharmacy`, `reception`, `accounts`, `staff`. `lib/access.ts` lists which screens, record types and workflows each role may use. The server enforces it, and the screens and the phone tab bar hide what a role cannot use. Changing a role or switching an account off takes effect on that person's next action.
+Roles: `admin`, `doctor`, `nurse`, `lab`, `pharmacy`, `reception`, `accounts`, `staff`. Access follows the role, not the department. `lib/access.ts` lists which screens, record types and workflows each role may use, and Staff accounts shows the same rules as a table. The server enforces it: a role is never sent the records it may not read, and its writes are refused. The screens and the phone tab bar hide what a role cannot use. Changing a role or switching an account off takes effect on that person's next action.
+
+| Role | Can use |
+| --- | --- |
+| Administrator | Everything, including staff accounts, settings and email |
+| Doctor, nurse | Patients, consultations, appointments, emergency, dental, laboratory requests, wards, prescriptions (doctors write them). No invoices, payments, expenses or SHA claims |
+| Front desk | Registering patients, appointments, admissions desk, invoices, recording payments, SHA claims. No clinical notes |
+| Accounts | Invoices, payments, expenses, SHA claims, reports. No patient clinical records |
+| Laboratory | Laboratory worklist, results and test catalogue |
+| Pharmacy | Medicines, point of sale, prescriptions, inventory |
+| General staff | Sign in only |
+
+## Email
+
+Email goes out through a small Google Apps Script web app that belongs to the hospital Gmail account, so it is free and needs no domain. Settings, Email has the steps, a script to copy and an access code generator. The relay address, the access code and the alert addresses are stored in the `app_config` table, never in the code or in Worker secrets. The access code is never sent back to the browser.
+
+* Alerts go to the alert addresses (or to every administrator when none are set): a new access request, and a failed nightly backup.
+* The person you approve, or an account you add, receives a temporary password. If email is not set up or the relay fails, the administrator is shown the password once so it can be passed on by hand.
+* `/forgot` emails a one hour reset link. A link works once, the token is stored hashed, and the answer is the same whether or not the account exists. At most 3 links an hour per account.
+* Every message is listed in Settings, Email with its result. The log never holds message text, so temporary passwords are not kept.
+
+Only `https://script.google.com/macros/s/.../exec` addresses are accepted. Set `APP_ORIGIN` to pin the address used in email links (`wrangler.jsonc` does this for the hosted site). Free Gmail allows about 100 recipients a day through Apps Script.
 
 ## Backups
 

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, AlertTriangle, BedDouble, CalendarPlus, Receipt, Users, UserPlus, Wallet, FlaskConical, Siren, ShieldAlert, Pill } from "lucide-react";
 import { PageHeader, Stat, Status, Avatar } from "@/components/ui";
-import { useDB, useLookup } from "@/lib/store";
+import { useDB, useLookup, useUser } from "@/lib/store";
 import { ANCHOR, addDays, dayName, fmtDate, fmtShort, fmtTime, kes, kesShort } from "@/lib/format";
 import { invoiceTotals } from "@/lib/billing";
 
@@ -23,6 +23,7 @@ function Meter({ label, value, total, tone = C.brand, right }: { label: string; 
 export default function Dashboard() {
   const d = useDB();
   const L = useLookup();
+  const user = useUser();
 
   const m = useMemo(() => {
     const collectedToday = d.payments.filter((p) => p.date === ANCHOR).reduce((a, p) => a + p.amount, 0);
@@ -56,7 +57,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Welcome back, Ruth" description={`${dayName(ANCHOR)}, ${fmtDate(ANCHOR)}. Here is how the hospital is running today.`}
+      <PageHeader title={`Welcome back, ${user?.name ?? ""}`} description={`${dayName(ANCHOR)}, ${fmtDate(ANCHOR)}. Here is how the hospital is running today.`}
         actions={<>
           <Link href="/patients/new" className="btn btn-secondary"><UserPlus size={16} />Register patient</Link>
           <Link href="/appointments" className="btn btn-secondary"><CalendarPlus size={16} />Book appointment</Link>

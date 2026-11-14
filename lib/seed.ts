@@ -1,14 +1,8 @@
 import { ANCHOR, addDays } from "./format";
 
-export type Row = { id: number; [k: string]: any };
-export const COLLECTIONS = [
-  "settings", "departments", "doctors", "nurses", "staff", "patients", "visits", "appointments", "emergencies",
-  "prescriptions", "medicines", "inventory", "labCatalog", "labOrders", "beds", "admissions", "services", "invoices",
-  "payments", "expenses", "pharmacySales", "ambulances", "bookings", "dental", "shaClaims", "holidays", "schedules",
-  "symptoms", "diagnoses", "treatments", "advice", "documents", "templates", "imaging", "plans", "attendance",
-] as const;
-export type CollectionName = (typeof COLLECTIONS)[number];
-export type DB = Record<CollectionName, Row[]>;
+import { COLLECTIONS, type CollectionName, type DB, type Row } from "./collections";
+export { COLLECTIONS };
+export type { CollectionName, DB, Row };
 
 export function buildSeed(): DB {
   let s = 20261114;

@@ -1,7 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
+import { api, ApiError } from "@/lib/api";
+import { loadAll, useStatus } from "@/lib/store";
 
 function FloorMotif() {
   const rooms = [[40, 60, 150, 100], [190, 60, 110, 100], [300, 60, 150, 100], [40, 160, 90, 120], [130, 160, 170, 120], [300, 160, 150, 120], [40, 300, 190, 90], [230, 300, 220, 90]];
@@ -15,7 +17,26 @@ function FloorMotif() {
 
 export default function Login() {
   const router = useRouter();
+  const status = useStatus();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => { if (status === "ready") router.replace("/dashboard"); }, [status, router]);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setBusy(true); setError("");
+    try {
+      await api("/api/login", { method: "POST", body: { email: f.get("email"), password: f.get("password") } });
+      await loadAll();
+      router.replace("/dashboard");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not reach the server. Check your connection and try again.");
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <section className="relative hidden overflow-hidden bg-brand-50 p-12 lg:flex lg:flex-col lg:justify-between">
@@ -28,17 +49,17 @@ export default function Login() {
         <FloorMotif />
       </section>
       <section className="flex items-center justify-center bg-white p-6 sm:p-12">
-        <form className="w-full max-w-[380px]" onSubmit={(e) => { e.preventDefault(); setBusy(true); router.push("/dashboard"); }}>
+        <form className="w-full max-w-[380px]" onSubmit={submit}>
           <div className="mb-8 lg:hidden"><Logo height={60} /></div>
           <h2 className="text-2xl font-semibold">Sign in</h2>
-          <p className="mt-1.5 text-[13px] text-muted">Use your hospital email to open your workspace.</p>
+          <p className="mt-1.5 text-[13px] text-muted">Use the email and password your administrator gave you.</p>
           <div className="mt-7 space-y-4">
-            <label className="block"><span className="label">Email</span><input className="input h-10" type="email" defaultValue="ruth.njeri@kfbh.example" autoComplete="username" required /></label>
-            <label className="block"><span className="label">Password</span><input className="input h-10" type="password" defaultValue="password" autoComplete="current-password" required /></label>
-            <div className="flex items-center justify-between text-[13px]"><label className="flex items-center gap-2 text-muted"><input type="checkbox" defaultChecked className="h-4 w-4 accent-[#2a6fae]" />Keep me signed in</label><span className="text-brand">Forgot password</span></div>
+            <label className="block"><span className="label">Email</span><input className="input h-10" name="email" type="email" autoComplete="username" required autoFocus /></label>
+            <label className="block"><span className="label">Password</span><input className="input h-10" name="password" type="password" autoComplete="current-password" required /></label>
           </div>
+          {error && <p className="mt-4 rounded-md bg-bad-50 px-3 py-2 text-[13px] text-bad" role="alert">{error}</p>}
           <button className="btn btn-primary mt-6 h-10 w-full" disabled={busy}>{busy ? "Signing in" : "Sign in"}</button>
-          <p className="mt-6 rounded-lg bg-surface p-3 text-xs leading-relaxed text-muted">Demonstration mode. Authentication is not connected yet, so any credentials open the workspace.</p>
+          <p className="mt-6 text-xs leading-relaxed text-muted">Patient records are confidential. Every change is logged against your name.</p>
         </form>
       </section>
     </div>

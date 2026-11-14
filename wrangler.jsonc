@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kingdom-hospital",
+  "main": ".open-next/embedded-worker.mjs",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "rules": [{ "type": "Data", "globs": ["**/embedded/*"], "fallthrough": false }],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true }
+}

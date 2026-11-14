@@ -21,11 +21,12 @@ export function PrescriptionForm({ onClose, initial }: { open: boolean; onClose:
   const [err, setErr] = useState("");
   const setItem = (i: number, p: object) => setItems((l) => l.map((x, k) => (k === i ? { ...x, ...p } : x)));
 
-  const save = () => {
+  const save = async () => {
     const valid = items.filter((i) => i.medicine);
     if (!patientId || !doctorId || !valid.length) { setErr("Choose a patient, a doctor and at least one medicine."); return; }
     const row = { patientId: Number(patientId), doctorId: Number(doctorId), date, notes, items: valid.map((i) => ({ ...i, days: Number(i.days) })) };
-    if (initial) db.update("prescriptions", initial.id, row); else db.add("prescriptions", row as any);
+    const saved = initial ? await db.update("prescriptions", initial.id, row) : await db.add("prescriptions", row);
+    if (!saved) return;
     toast("Prescription saved");
     onClose();
   };

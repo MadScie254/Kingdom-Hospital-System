@@ -52,29 +52,19 @@ export default function NewInvoice() {
   const add = (o: Opt) => { setItems((l) => { const i = l.findIndex((x) => x.description === o.name); return i >= 0 ? l.map((x, k) => (k === i ? { ...x, qty: x.qty + 1 } : x)) : [...l, { description: o.name, qty: 1, price: o.price }]; }); setQ(""); };
   const upd = (i: number, p: Partial<Line>) => setItems((l) => l.map((x, k) => (k === i ? { ...x, ...p } : x)));
 
-  const save = (mode: "save" | "print" | "draft") => {
+  const save = async (mode: "save" | "print" | "draft") => {
     if (!patientId || !doctorId) { setErr("Choose a patient and the attending doctor."); return; }
     if (!items.length) { setErr("Add at least one item to the invoice."); return; }
     setErr("");
-    const base = { patientId: Number(patientId), doctorId: Number(doctorId), source, date, dueDate, items, discountPct: Number(discountPct) || 0, vatPct: Number(vatPct) || 0, note, method };
     const draft = mode === "draft";
-    if (editNo) {
-      const inv = d.invoices.find((i) => i.no === editNo)!;
-      db.update("invoices", inv.id, { ...base, status: draft ? "Draft" : statusFor(totals.total, inv.paid) });
-      toast(`Invoice ${editNo} updated`);
-      router.push(`/billing/${editNo}${mode === "print" ? "?print=1" : ""}`);
-      return;
-    }
-    const no = nextInvoiceNo(d.invoices);
-    const paid = draft ? 0 : paidNow;
-    db.add("invoices", { no, ...base, paid, status: draft ? "Draft" : statusFor(totals.total, paid) });
-    if (paid > 0) db.add("payments", { invoiceNo: no, patientId: Number(patientId), date: ANCHOR, amount: paid, method, reference: reference || (method === "Cash" ? "Counter receipt" : "Not recorded") });
-    if (!draft) {
-      let sent = 0;
-      items.forEach((l) => { const t = d.labCatalog.find((x) => x.name === l.description); if (t) { db.add("labOrders", { patientId: Number(patientId), doctorId: Number(doctorId), testId: t.id, source, orderedAt: nowISO(), status: "Ordered", result: null, flag: "", collectedBy: "", verifiedBy: "", priority: "Routine", notes: "" }); sent++; } });
-      if (billSha) db.add("shaClaims", { claimNo: `SHA2026${String(d.shaClaims.length + 300).padStart(4, "0")}`, invoiceNo: no, patientId: Number(patientId), intervention: "Outpatient, primary care", fund: "SHIF", amount: Math.round(totals.total * 0.85), status: "Draft", submitted: date, remarks: "" });
-      toast(`Invoice ${no} saved${sent ? `, ${sent} lab ${sent === 1 ? "test" : "tests"} sent to the laboratory` : ""}`);
-    } else toast(`Draft ${no} saved`);
+    const base = { patientId: Number(patientId), doctorId: Number(doctorId), source, date, dueDate, items, discountPct: Number(discountPct) || 0, vatPct: Number(vatPct) || 0, note, method, draft };
+    const labTestIds = draft ? [] : items.map((l) => d.labCatalog.find((x) => x.name === l.description)?.id).filter((x): x is number => !!x);
+    const res = editNo
+      ? await db.action("invoice.update", { ...base, no: editNo })
+      : await db.action("invoice.create", { ...base, deposit: Number(deposit) || 0, reference, billSha, labTestIds });
+    if (!res) return;
+    const no = res.no as string;
+    toast(editNo ? `Invoice ${no} updated` : draft ? `Draft ${no} saved` : `Invoice ${no} saved${labTestIds.length ? `, ${labTestIds.length} lab ${labTestIds.length === 1 ? "test" : "tests"} sent to the laboratory` : ""}`);
     router.push(`/billing/${no}${mode === "print" ? "?print=1" : ""}`);
   };
 

@@ -24,7 +24,7 @@ function GenericForm({ def, initial, onClose }: { def: ResourceDef; initial: Row
   const [errors, setErrors] = useState<Record<string, string>>({});
   const set = (n: string, x: any) => setV((s) => ({ ...s, [n]: x }));
 
-  const save = () => {
+  const save = async () => {
     const errs: Record<string, string> = {};
     fields.forEach((f) => { if (f.required && (v[f.name] === undefined || v[f.name] === null || String(v[f.name]).trim() === "")) errs[f.name] = `Enter ${f.label.toLowerCase()}`; });
     setErrors(errs);
@@ -34,8 +34,9 @@ function GenericForm({ def, initial, onClose }: { def: ResourceDef; initial: Row
       if (f.type === "number") out[f.name] = v[f.name] === "" || v[f.name] == null ? null : Number(v[f.name]);
       if (f.from && v[f.name] !== "" && v[f.name] != null) out[f.name] = Number(v[f.name]);
     });
-    if (initial) { db.update(def.collection, initial.id, out); toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} updated`); }
-    else { db.add(def.collection, out as any); toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} added`); }
+    const saved = initial ? await db.update(def.collection, initial.id, out) : await db.add(def.collection, out);
+    if (!saved) return;
+    toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} ${initial ? "updated" : "added"}`);
     onClose();
   };
 
@@ -91,7 +92,7 @@ function Inner({ def, embedded }: { def: ResourceDef; embedded?: boolean }) {
           {def.rowHref && <Link href={def.rowHref(r)} className="btn btn-ghost btn-sm btn-icon" aria-label="Open"><Eye size={15} /></Link>}
           {def.extra?.(r, ctx)}
           {!def.readOnly && !def.noEdit && <button className="btn btn-ghost btn-sm btn-icon" aria-label="Edit" onClick={() => setForm({ row: r })}><Pencil size={15} /></button>}
-          {!def.readOnly && <button className="btn btn-ghost btn-sm btn-icon hover:!text-bad" aria-label="Delete" onClick={() => ask(`Delete this ${def.singular}?`, "This removes the record from the system. It cannot be undone.", () => { db.remove(def.collection, r.id); toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} deleted`); })}><Trash2 size={15} /></button>}
+          {!def.readOnly && <button className="btn btn-ghost btn-sm btn-icon hover:!text-bad" aria-label="Delete" onClick={() => ask(`Delete this ${def.singular}?`, "This removes the record from the system. It cannot be undone.", async () => { if (await db.remove(def.collection, r.id)) toast(`${def.singular[0].toUpperCase()}${def.singular.slice(1)} deleted`); })}><Trash2 size={15} /></button>}
         </div>
       ),
     };

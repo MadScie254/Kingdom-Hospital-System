@@ -39,19 +39,19 @@ function InvoiceView({ id }: { id: string }) {
   const claim = d.shaClaims.find((c) => c.invoiceNo === inv.no);
   const overdue = inv.status !== "Paid" && inv.status !== "Draft" && inv.dueDate < ANCHOR;
 
-  const record = () => {
+  const record = async () => {
     const amt = Math.min(Number(amount) || 0, balance);
     if (amt <= 0) return;
-    db.add("payments", { invoiceNo: inv.no, patientId: inv.patientId, date: ANCHOR, amount: amt, method, reference: ref || (method === "Cash" ? "Counter receipt" : "Not recorded") });
-    const paid = inv.paid + amt;
-    db.update("invoices", inv.id, { paid, status: statusFor(t.total, paid), method });
+    const res = await db.action("payment.record", { invoiceNo: inv.no, amount: amt, method, reference: ref });
+    if (!res) return;
     toast(`Payment of ${kes(amt)} recorded`);
     setPay(false); setAmount(""); setRef("");
   };
-  const duplicate = () => {
-    const created = db.add("invoices", { ...inv, id: undefined, no: nextInvoiceNo(d.invoices), paid: 0, status: "Draft", date: ANCHOR, dueDate: ANCHOR } as any);
-    toast(`Draft ${created.no} created`);
-    router.push(`/billing/${created.no}`);
+  const duplicate = async () => {
+    const res = await db.action("invoice.create", { patientId: inv.patientId, doctorId: inv.doctorId, source: inv.source, date: ANCHOR, dueDate: ANCHOR, items: inv.items, discountPct: inv.discountPct, vatPct: inv.vatPct, method: inv.method, note: inv.note, draft: true });
+    if (!res) return;
+    toast(`Draft ${res.no} created`);
+    router.push(`/billing/${res.no}`);
   };
   const mail = `mailto:${p?.email ?? ""}?subject=${encodeURIComponent(`Invoice ${inv.no} from ${h.name}`)}&body=${encodeURIComponent(`Dear ${p?.name},\n\nInvoice ${inv.no} for ${kes(t.total)} is attached. Balance due: ${kes(balance)}.\n\n${h.mpesaPaybill ? `Pay by M Pesa Paybill ${h.mpesaPaybill}, account ${p?.mrn}.\n\n` : ""}${h.name}`)}`;
 

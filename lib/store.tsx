@@ -1,54 +1,124 @@
 "use client";
 import { useEffect, useSyncExternalStore } from "react";
-import { buildSeed, type DB, type CollectionName, type Row } from "./seed";
+import { toast } from "@/components/ui";
+import { api, ApiError } from "./api";
+import { emptyDB, type CollectionName, type DB, type Row } from "./collections";
 
-const KEY = "kingdom.hospital.v3";
-const seed = buildSeed();
-let state: DB = seed;
+export type User = { id: number; email: string; name: string; role: "admin" | "staff" };
+type Status = "loading" | "ready" | "unauth" | "error";
+
+const EMPTY = emptyDB();
+let state: DB = EMPTY;
+let status: Status = "loading";
+let me: User | null = null;
+let loadedAt = 0;
+let inflight: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const persist = () => {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
-};
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
 
-export function useDB(): DB {
-  return useSyncExternalStore(subscribe, () => state, () => seed);
+export const useDB = (): DB => useSyncExternalStore(subscribe, () => state, () => EMPTY);
+export const useCollection = <K extends CollectionName>(name: K): DB[K] => useDB()[name];
+export const useStatus = (): Status => useSyncExternalStore(subscribe, () => status, () => "loading" as Status);
+export const useUser = (): User | null => useSyncExternalStore(subscribe, () => me, () => null);
+
+export function loadAll(): Promise<void> {
+  if (inflight) return inflight;
+  inflight = (async () => {
+    try {
+      const r = await api<{ user: User; data: DB }>("/api/data");
+      state = { ...emptyDB(), ...r.data };
+      me = r.user;
+      status = "ready";
+      loadedAt = Date.now();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) { status = "unauth"; me = null; state = EMPTY; }
+      else if (status === "loading") status = "error";
+    }
+    inflight = null;
+    emit();
+  })();
+  return inflight;
 }
-export function useCollection<K extends CollectionName>(name: K): DB[K] {
-  return useDB()[name];
+
+export async function signOut() {
+  try { await api("/api/logout", { method: "POST", body: {} }); } catch {}
+  status = "unauth"; me = null; state = EMPTY;
+  emit();
+}
+
+function merge(changes: Record<string, Row[]>) {
+  const next = { ...state };
+  for (const [c, rows] of Object.entries(changes)) {
+    let list = [...(next[c as CollectionName] || [])];
+    for (const r of rows) {
+      const i = list.findIndex((x) => x.id === r.id);
+      if (i >= 0) list[i] = r; else list = [r, ...list];
+    }
+    next[c as CollectionName] = list;
+  }
+  state = next;
+  emit();
+}
+
+function failed(e: unknown): null {
+  toast(e instanceof ApiError ? e.message : "Could not reach the server. Check your connection and try again.");
+  if (e instanceof ApiError && e.status === 401) { status = "unauth"; emit(); }
+  return null;
 }
 
 export const db = {
   get: () => state,
-  add<K extends CollectionName>(name: K, row: Omit<Row, "id"> & { id?: number }): Row {
-    const list = state[name] as Row[];
-    const id = row.id ?? list.reduce((m, r) => Math.max(m, r.id), 0) + 1;
-    const created = { ...row, id } as Row;
-    state = { ...state, [name]: [created, ...list] };
-    persist(); emit();
-    return created;
+  async add(name: CollectionName, row: Record<string, any>): Promise<Row | null> {
+    try {
+      const r = await api<{ row: Row }>(`/api/records/${name}`, { method: "POST", body: row });
+      merge({ [name]: [r.row] });
+      return r.row;
+    } catch (e) { return failed(e); }
   },
-  update<K extends CollectionName>(name: K, id: number, patch: Partial<Row>) {
-    state = { ...state, [name]: (state[name] as Row[]).map((r) => (r.id === id ? { ...r, ...patch } : r)) };
-    persist(); emit();
+  async update(name: CollectionName, id: number, patch: Record<string, any>): Promise<Row | null> {
+    const prev = state[name].find((r) => r.id === id);
+    if (prev) merge({ [name]: [{ ...prev, ...patch }] });
+    try {
+      const r = await api<{ row: Row }>(`/api/records/${name}/${id}`, { method: "PATCH", body: patch });
+      merge({ [name]: [r.row] });
+      return r.row;
+    } catch (e) {
+      if (prev) merge({ [name]: [prev] });
+      return failed(e);
+    }
   },
-  remove<K extends CollectionName>(name: K, id: number) {
-    state = { ...state, [name]: (state[name] as Row[]).filter((r) => r.id !== id) };
-    persist(); emit();
+  async remove(name: CollectionName, id: number): Promise<boolean> {
+    const before = state[name];
+    state = { ...state, [name]: before.filter((r) => r.id !== id) };
+    emit();
+    try {
+      await api(`/api/records/${name}/${id}`, { method: "DELETE" });
+      return true;
+    } catch (e) {
+      state = { ...state, [name]: before };
+      emit();
+      failed(e);
+      return false;
+    }
   },
-  reset() {
-    state = buildSeed();
-    persist(); emit();
+  /** Run a server workflow. Resolves to the action's result, or null after showing the error. */
+  async action(name: string, body: Record<string, any>): Promise<Record<string, any> | null> {
+    try {
+      const r = await api<{ changes: Record<string, Row[]>; result?: Record<string, any> }>(`/api/actions/${name}`, { method: "POST", body });
+      merge(r.changes || {});
+      return r.result ?? {};
+    } catch (e) { return failed(e); }
   },
 };
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) { state = JSON.parse(raw) as DB; emit(); }
-    } catch {}
+    loadAll();
+    const refresh = () => { if (document.visibilityState === "visible" && status === "ready" && Date.now() - loadedAt > 60_000) loadAll(); };
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    return () => { document.removeEventListener("visibilitychange", refresh); window.removeEventListener("focus", refresh); };
   }, []);
   return <>{children}</>;
 }

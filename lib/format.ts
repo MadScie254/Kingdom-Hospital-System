@@ -1,4 +1,6 @@
-export const ANCHOR = "2026-11-14";
+const eat = () => new Date(Date.now() + 3 * 3600e3).toISOString();
+/** Today in Nairobi time (UTC+3, no daylight saving). */
+export const ANCHOR = eat().slice(0, 10);
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -71,8 +73,7 @@ export function download(name: string, text: string, mime = "text/csv") {
 }
 
 export function nowISO(): string {
-  const n = new Date(Date.now() + 3 * 3600e3);
-  return `${ANCHOR}T${n.toISOString().slice(11, 16)}`;
+  return eat().slice(0, 16);
 }
 
 export function daysBetween(a: string, b: string): number {

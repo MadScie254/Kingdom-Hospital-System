@@ -19,10 +19,10 @@ export default function Pos() {
   const lines = Object.entries(cart).map(([id, qty]) => { const m = d.medicines.find((x) => x.id === Number(id))!; return { m, qty }; }).filter((l) => l.m);
   const total = lines.reduce((a, l) => a + l.qty * l.m.sale, 0);
   const add = (id: number, by = 1) => setCart((c) => { const m = d.medicines.find((x) => x.id === id)!; const n = Math.max(0, Math.min((c[id] || 0) + by, m.quantity)); const o = { ...c }; if (n === 0) delete o[id]; else o[id] = n; return o; });
-  const complete = () => {
+  const complete = async () => {
     if (!lines.length) return;
-    db.add("pharmacySales", { date: nowISO(), patientId: patientId ? Number(patientId) : null, lines: lines.map((l) => ({ medicineId: l.m.id, name: l.m.name, qty: l.qty, price: l.m.sale })), total, method });
-    lines.forEach((l) => db.update("medicines", l.m.id, { quantity: l.m.quantity - l.qty }));
+    const res = await db.action("pharmacy.sale", { lines: lines.map((l) => ({ medicineId: l.m.id, qty: l.qty })), patientId: patientId ? Number(patientId) : null, method });
+    if (!res) return;
     toast(`Sale of ${kes(total)} completed`); setCart({}); setPatientId("");
   };
   return (

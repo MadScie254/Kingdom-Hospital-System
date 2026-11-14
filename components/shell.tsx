@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { Bell, ChevronDown, LogOut, Menu, Search, Settings, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bell, ChevronDown, LogOut, Menu, RefreshCw, Search, Settings, X } from "lucide-react";
 import clsx from "clsx";
 import { NAV, bestMatch } from "@/lib/nav";
-import { useDB } from "@/lib/store";
+import { loadAll, signOut, useDB, useStatus, useUser } from "@/lib/store";
 import { Avatar, ToastHost } from "./ui";
 import { Logo } from "./logo";
 import { ANCHOR, fmtDate, dayName } from "@/lib/format";
@@ -95,7 +95,26 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [mobile, setMobile] = useState(false);
   const [menu, setMenu] = useState(false);
   const { medicines, labOrders } = useDB();
+  const status = useStatus();
+  const user = useUser();
+  const router = useRouter();
+  useEffect(() => { if (status === "unauth") router.replace("/login"); }, [status, router]);
   const alerts = medicines.filter((m) => m.quantity <= m.reorder).length + labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length;
+  if (status !== "ready") {
+    return (
+      <div className="grid min-h-screen place-items-center bg-surface p-6 text-center">
+        <div>
+          <Logo height={64} className="mx-auto" />
+          {status === "error" ? (
+            <>
+              <p className="mt-6 text-[13px] text-muted">The hospital server could not be reached.</p>
+              <button className="btn btn-primary mt-3" onClick={() => loadAll()}>Try again</button>
+            </>
+          ) : <p className="mt-6 text-[13px] text-muted">{status === "unauth" ? "Opening the sign in page" : "Loading hospital records"}</p>}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="app-shell min-h-screen">
       <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-[264px] border-r border-line bg-white lg:block"><Sidebar /></aside>
@@ -113,6 +132,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <button className="btn btn-ghost btn-icon lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu"><Menu size={18} /></button>
           <GlobalSearch />
           <div className="ml-auto flex items-center gap-1.5">
+            <button className="btn btn-ghost btn-icon" onClick={() => loadAll()} aria-label="Refresh records"><RefreshCw size={15} /></button>
             <span className="hidden pr-3 text-xs text-muted md:block">{dayName(ANCHOR)}, {fmtDate(ANCHOR)}</span>
             <Link href="/pharmacy" className="btn btn-ghost btn-icon relative" aria-label={`${alerts} stock and lab alerts`}>
               <Bell size={17} />
@@ -120,14 +140,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="relative">
               <button className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Account menu">
-                <Avatar name="Ruth Njeri" size={30} />
-                <span className="hidden text-left leading-tight sm:block"><span className="block text-[13px] font-medium">Ruth Njeri</span><span className="block text-[11.5px] text-muted">Administrator</span></span>
+                <Avatar name={user?.name || "User"} size={30} />
+                <span className="hidden text-left leading-tight sm:block"><span className="block text-[13px] font-medium">{user?.name}</span><span className="block text-[11.5px] text-muted">{user?.role === "admin" ? "Administrator" : "Staff"}</span></span>
                 <ChevronDown size={14} className="text-faint" />
               </button>
               {menu && (
                 <div className="absolute right-0 top-11 z-50 w-48 overflow-hidden rounded-lg border border-line bg-white py-1 shadow-xl" onMouseLeave={() => setMenu(false)}>
                   <Link href="/settings" className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-surface"><Settings size={15} />Settings</Link>
-                  <Link href="/login" className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-surface"><LogOut size={15} />Sign out</Link>
+                  <button className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] hover:bg-surface" onClick={() => signOut()}><LogOut size={15} />Sign out</button>
                 </div>
               )}
             </div>

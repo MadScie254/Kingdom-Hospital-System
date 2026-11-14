@@ -51,10 +51,11 @@ export default function NewDental() {
 
   const toggle = (n: number) => setSel((s) => (multi ? (s.includes(n) ? s.filter((x) => x !== n) : [...s, n]) : s.includes(n) && s.length === 1 ? [] : [n]));
   const apply = (c: string) => { if (!sel.length) return; setTeeth((t) => { const o = { ...t }; sel.forEach((n) => { if (c === "Healthy") delete o[n]; else o[n] = c; }); return o; }); };
-  const save = () => {
+  const save = async () => {
     if (!v.patientId || !v.doctorId || !v.complaint) { setErr("Choose a patient and dentist, and enter the chief complaint."); return; }
     const row = { ...v, patientId: Number(v.patientId), doctorId: Number(v.doctorId), teeth };
-    if (editId) db.update("dental", editId, row); else db.add("dental", row as any);
+    const saved = editId ? await db.update("dental", editId, row) : await db.add("dental", row);
+    if (!saved) return;
     toast(editId ? "Examination updated" : "Examination saved");
     router.push("/dental");
   };

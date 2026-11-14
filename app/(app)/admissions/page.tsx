@@ -39,25 +39,22 @@ function BedPanel({ bed, onClose }: { bed: Row; onClose: () => void }) {
   const free = d.beds.filter((b) => b.status === "Available" && b.id !== bed.id);
   const days = adm ? Math.max(1, daysBetween(adm.admittedAt, ANCHOR)) : 0;
 
-  const admit = () => {
+  const admit = async () => {
     if (!patientId || !doctorId) return;
-    db.add("admissions", { bedId: bed.id, patientId: Number(patientId), doctorId: Number(doctorId), admittedAt: nowISO(), dischargedAt: "", diagnosis: dx || "Under assessment", status: "Admitted", due: 0 });
-    db.update("beds", bed.id, { status: "Occupied", patientId: Number(patientId) });
+    const res = await db.action("admission.admit", { bedId: bed.id, patientId: Number(patientId), doctorId: Number(doctorId), diagnosis: dx });
+    if (!res) return;
     toast(`${L.patientName(Number(patientId))} admitted to ${bed.code}`); onClose();
   };
-  const discharge = () => {
+  const discharge = async () => {
     if (!adm) return;
-    const no = nextInvoiceNo(d.invoices);
-    db.add("invoices", { no, patientId: adm.patientId, doctorId: adm.doctorId, date: ANCHOR, dueDate: addDays(ANCHOR, 14), items: [{ description: `Bed charges, ${bed.ward}, ${days} ${days === 1 ? "day" : "days"}`, qty: days, price: bed.price }], discountPct: 0, vatPct: 0, paid: 0, status: "Due", source: "Inpatient", method: "SHA", note: `Admission ${adm.diagnosis}` });
-    db.update("admissions", adm.id, { status: "Discharged", dischargedAt: nowISO() });
-    db.update("beds", bed.id, { status: "Cleaning", patientId: null });
-    toast(`Discharged. Invoice ${no} created for ${kes(days * bed.price, 0)}`); onClose();
+    const res = await db.action("admission.discharge", { admissionId: adm.id });
+    if (!res) return;
+    toast(`Discharged. Invoice ${res.no} created for ${kes(res.total, 0)}`); onClose();
   };
-  const transfer = () => {
+  const transfer = async () => {
     if (!adm || !moveTo) return;
-    db.update("admissions", adm.id, { bedId: Number(moveTo) });
-    db.update("beds", Number(moveTo), { status: "Occupied", patientId: adm.patientId });
-    db.update("beds", bed.id, { status: "Cleaning", patientId: null });
+    const res = await db.action("admission.transfer", { admissionId: adm.id, toBedId: Number(moveTo) });
+    if (!res) return;
     toast("Patient transferred"); onClose();
   };
   const setStatus = (status: string) => { db.update("beds", bed.id, { status }); toast(`Bed ${bed.code} marked ${status.toLowerCase()}`); onClose(); };

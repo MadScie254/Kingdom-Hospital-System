@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, BarChart3, ClipboardCheck, FlaskConical, Plus, Search, Hourglass, Timer } from "lucide-react";
-import { db, useDB, useLookup } from "@/lib/store";
+import { db, useDB, useLookup, useUser } from "@/lib/store";
 import { Badge, Drawer, Field, PageHeader, Stat, toast } from "@/components/ui";
 import { FlagBadge, RangeGauge, Trend } from "@/components/lab";
 import { STAGES, STAGE_LABEL, flagFor, isQuant, rangeText } from "@/lib/lab";
@@ -23,9 +23,11 @@ function ResultDrawer({ order, onClose }: { order: Row; onClose: () => void }) {
   const quant = isQuant(test);
   const qualOptions = [test.refText || "Negative", test.name === "Urinalysis" ? "Leucocytes ++, nitrites positive" : test.name === "Malaria smear" ? "Positive, P. falciparum" : "Positive"];
 
-  const commit = (status: "Review" | "Released") => {
+  const user = useUser();
+  const commit = async (status: "Review" | "Released") => {
     if (val === "") return;
-    db.update("labOrders", order.id, { result: quant ? Number(val) : val, flag, notes, status, verifiedBy: status === "Released" ? "Martin Kariuki" : "" });
+    const saved = await db.update("labOrders", order.id, { result: quant ? Number(val) : val, flag, notes, status, verifiedBy: status === "Released" ? user?.name || "" : "" });
+    if (!saved) return;
     toast(status === "Released" ? `${test.name} released for ${L.patientName(order.patientId)}` : `${test.name} saved for review`);
     onClose();
   };
@@ -73,9 +75,12 @@ function OrderDrawer({ onClose }: { onClose: () => void }) {
   const [picked, setPicked] = useState<number[]>([]);
   const [q, setQ] = useState("");
   const list = d.labCatalog.filter((t) => t.name.toLowerCase().includes(q.toLowerCase()));
-  const save = () => {
+  const save = async () => {
     if (!patientId || !doctorId || !picked.length) return;
-    picked.forEach((testId) => db.add("labOrders", { patientId: Number(patientId), doctorId: Number(doctorId), testId, source, orderedAt: nowISO(), status: "Ordered", result: null, flag: "", collectedBy: "", verifiedBy: "", priority, notes: "" }));
+    for (const testId of picked) {
+      const saved = await db.add("labOrders", { patientId: Number(patientId), doctorId: Number(doctorId), testId, source, orderedAt: nowISO(), status: "Ordered", result: null, flag: "", collectedBy: "", verifiedBy: "", priority, notes: "" });
+      if (!saved) return;
+    }
     toast(`${picked.length} ${picked.length === 1 ? "test" : "tests"} ordered`);
     onClose();
   };
@@ -120,8 +125,9 @@ export default function Worklist() {
   const critical = d.labOrders.filter((o) => o.flag === "Critical" && o.status !== "Released").length;
   const releasedToday = d.labOrders.filter((o) => o.status === "Released" && o.orderedAt.startsWith(ANCHOR)).length;
 
+  const user = useUser();
   const advance = (o: Row) => {
-    if (o.status === "Ordered") { db.update("labOrders", o.id, { status: "Collected", collectedBy: "Dorcas Moraa" }); toast("Sample collected"); }
+    if (o.status === "Ordered") { db.update("labOrders", o.id, { status: "Collected", collectedBy: user?.name || "" }); toast("Sample collected"); }
     else if (o.status === "Collected") { db.update("labOrders", o.id, { status: "Processing" }); toast("Processing started"); }
     else setEntry(o);
   };

@@ -31,7 +31,7 @@ export default function RegisterPatient() {
   }, []);
 
   const bmi = Number(v.heightCm) && Number(v.weightKg) ? (Number(v.weightKg) / (Number(v.heightCm) / 100) ** 2).toFixed(1) : "";
-  const save = () => {
+  const save = async () => {
     const req: [string, string][] = [["name", "full name"], ["gender", "gender"], ["dob", "date of birth"], ["phone", "phone number"]];
     const errs: Record<string, string> = {};
     req.forEach(([k, l]) => { if (!String(v[k] || "").trim()) errs[k] = `Enter ${l}`; });
@@ -39,9 +39,14 @@ export default function RegisterPatient() {
     setErrors(errs);
     if (Object.keys(errs).length) return;
     const row: Record<string, any> = { ...v, heightCm: Number(v.heightCm) || null, weightKg: Number(v.weightKg) || null };
-    if (editId) { db.update("patients", editId, row); toast("Patient details updated"); router.push(`/patients/${editId}`); return; }
-    const max = d.patients.reduce((m, p) => Math.max(m, parseInt(String(p.mrn).replace(/\D/g, ""), 10) || 0), 0);
-    const created = db.add("patients", { ...row, mrn: `KH${max + 7}`, registered: ANCHOR });
+    if (editId) {
+      if (!(await db.update("patients", editId, row))) return;
+      toast("Patient details updated");
+      router.push(`/patients/${editId}`);
+      return;
+    }
+    const created = await db.add("patients", { ...row, registered: ANCHOR });
+    if (!created) return;
     toast(`${row.name} registered as ${created.mrn}`);
     router.push(`/patients/${created.id}`);
   };

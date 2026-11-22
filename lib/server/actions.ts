@@ -54,10 +54,6 @@ const invoiceCreate: Action = async (s, u, b) => {
     names.push("labOrders");
     qs.push(s.query(`insert into lab_orders (data) select jsonb_build_object('patientId', $1::int, 'doctorId', $2::int, 'testId', c.id, 'source', $3::text, 'orderedAt', ${NOW_EAT}, 'status', 'Ordered', 'result', null, 'flag', '', 'collectedBy', '', 'verifiedBy', '', 'priority', 'Routine', 'notes', '') from lab_catalog c where c.id = any($4::int[]) returning id, data`, [inv.patientId, inv.doctorId, inv.source, labIds]));
   }
-  if (!draft && b.billSha) {
-    names.push("shaClaims");
-    qs.push(s.query(`insert into sha_claims (data) values (jsonb_build_object('claimNo', 'SHA2026' || lpad(nextval('sha_claim_seq')::text, 4, '0'), 'invoiceNo', ${NO}, 'patientId', $1::int, 'intervention', 'Outpatient, primary care', 'fund', 'SHIF', 'amount', $2::numeric, 'status', 'Draft', 'submitted', $3::text, 'remarks', '')) returning id, data`, [inv.patientId, Math.round(f.totals.total * 0.85), inv.date]));
-  }
   const audited = qs.length;
   qs.push(s.query(`insert into audit_log (actor, action, collection, record_id) values ($1, 'invoice.create', 'invoices', 'INV' || lpad(currval('invoice_no_seq')::text, 4, '0'))`, [u.email]));
   const res = await s.transaction(qs);

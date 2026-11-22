@@ -1,63 +1,122 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { BadgeCheck, Banknote, FileClock, ShieldAlert, ShieldCheck, Search } from "lucide-react";
-import { PageHeader, Status, Tabs, toast } from "@/components/ui";
+import { useEffect, useState } from "react";
+import { Banknote, FileClock, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Badge, PageHeader, Tabs, toneOf } from "@/components/ui";
 import { ResourcePage } from "@/components/resource";
-import { db, useDB } from "@/lib/store";
+import { useDB, useUser } from "@/lib/store";
 import { fmtDate, kes } from "@/lib/format";
 import type { ResourceDef } from "@/lib/registry";
+import { VisitWizard } from "@/components/sha/visit-wizard";
+import { EmergencyForm } from "@/components/sha/emergency-form";
+import { SERVICE_LABEL, Section, timeLeft, useHieStatus } from "@/components/sha/common";
 
-const NEXT: Record<string, [string, string]> = { Draft: ["Submitted", "Submit"], Submitted: ["Approved", "Mark approved"], Approved: ["Paid", "Mark paid"], Rejected: ["Submitted", "Resubmit"] };
+const OPEN = ["Awaiting visit", "Visit open", "Draft", "Ready to submit"];
+const WITH_SHA = ["Submitted", "Under review", "Needs action", "Approved", "Sent for payment"];
+const PROBLEM = ["Rejected", "Failed to submit", "Time barred"];
+const SENT = [...WITH_SHA, ...PROBLEM, "Paid", "Closed"];
+
+const sum = (rows: Record<string, any>[], labels: string[]) => rows.filter((x) => labels.includes(x.status)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+const count = (rows: Record<string, any>[], labels: string[]) => rows.filter((x) => labels.includes(x.status)).length;
 
 const def: ResourceDef = {
   collection: "shaClaims", title: "SHA claims", singular: "claim", readOnly: true,
-  rowHref: undefined,
-  extra: (r) => { const n = NEXT[r.status]; return n ? <button className="btn btn-secondary btn-sm" onClick={() => { db.update("shaClaims", r.id, { status: n[0], remarks: n[0] === "Submitted" ? "" : r.remarks }); toast(`Claim ${r.claimNo} ${n[0].toLowerCase()}`); }}>{n[1]}</button> : null; },
-  tabs: [{ label: "All", test: () => true }, { label: "Draft", test: (r) => r.status === "Draft" }, { label: "Submitted", test: (r) => r.status === "Submitted" }, { label: "Approved", test: (r) => r.status === "Approved" }, { label: "Paid", test: (r) => r.status === "Paid" }, { label: "Rejected", test: (r) => r.status === "Rejected" }],
-  stats: (r) => { const sum = (s: string[]) => r.filter((x) => s.includes(x.status)).reduce((a, x) => a + x.amount, 0); return [
-    { label: "Ready to submit", value: kes(sum(["Draft"]), 0), hint: `${r.filter((x) => x.status === "Draft").length} draft claims`, icon: FileClock, tone: "mute" },
-    { label: "Awaiting payment", value: kes(sum(["Submitted", "Approved"]), 0), hint: "Submitted or approved", icon: BadgeCheck, tone: "brand" },
-    { label: "Paid by SHA", value: kes(sum(["Paid"]), 0), icon: Banknote, tone: "ok" },
-    { label: "Rejected", value: kes(sum(["Rejected"]), 0), hint: "Correct and resubmit", icon: ShieldAlert, tone: "bad" }]; },
-  filters: () => [{ key: "fund", label: "Fund", options: ["PHC Fund", "SHIF", "ECCIF"], get: (r) => r.fund }],
+  rowHref: (r) => `/sha/${r.id}`,
+  tabs: [
+    { label: "All", test: () => true },
+    { label: "Open visits", test: (r) => OPEN.includes(r.status) },
+    { label: "With SHA", test: (r) => WITH_SHA.includes(r.status) },
+    { label: "Paid", test: (r) => r.status === "Paid" },
+    { label: "Problems", test: (r) => PROBLEM.includes(r.status) },
+    { label: "Earlier records", test: (r) => r.source !== "hie" },
+  ],
+  stats: (r) => [
+    { label: "Open visits", value: count(r, OPEN), hint: "Not yet sent to SHA", icon: FileClock, tone: "mute" },
+    { label: "With SHA", value: kes(sum(r, WITH_SHA), 0), hint: `${count(r, WITH_SHA)} claims, status from SHA`, icon: ShieldCheck, tone: "brand" },
+    { label: "Paid by SHA", value: kes(sum(r, ["Paid"]), 0), icon: Banknote, tone: "ok" },
+    { label: "Needs attention", value: count(r, [...PROBLEM, "Needs action"]), hint: "Rejected, failed or sent back", icon: ShieldAlert, tone: "bad" },
+  ],
+  filters: (c) => [
+    { key: "kind", label: "Visit", options: Object.values(SERVICE_LABEL), get: (r) => SERVICE_LABEL[r.serviceType] || "Earlier record" },
+    { key: "fund", label: "Fund", options: [...new Set(c.db.shaClaims.map((r) => r.fund).filter(Boolean))] as string[], get: (r) => r.fund },
+  ],
   cols: (c) => [
-    { key: "claimNo", header: "Claim", render: (r) => <span className="font-semibold">{r.claimNo}</span> },
-    { key: "patient", header: "Patient", render: (r) => <div className="leading-tight"><Link href={`/patients/${r.patientId}`} className="font-medium hover:underline">{c.patientName(r.patientId)}</Link><div className="text-xs text-muted">{c.patient(r.patientId)?.shaNumber || "No SHA number"}</div></div>, value: (r) => c.patientName(r.patientId) },
-    { key: "invoiceNo", header: "Invoice", render: (r) => <Link href={`/billing/${r.invoiceNo}`} className="text-brand hover:underline">{r.invoiceNo}</Link>, value: (r) => r.invoiceNo },
-    { key: "intervention", header: "Intervention" }, { key: "fund", header: "Fund" },
-    { key: "submitted", header: "Service date", render: (r) => fmtDate(r.submitted) },
-    { key: "amount", header: "Claim amount", render: (r) => kes(r.amount, 0), value: (r) => r.amount, align: "right" },
-    { key: "status", header: "Status", render: (r) => <div><Status value={r.status} />{r.remarks && <div className="mt-1 max-w-[200px] text-xs text-bad">{r.remarks}</div>}</div>, value: (r) => r.status },
+    { key: "claimNo", header: "Claim", render: (r) => <div className="leading-tight"><Link href={`/sha/${r.id}`} className="font-semibold text-brand hover:underline">{r.claimNo}</Link>{r.visitNumber && <div className="font-mono text-xs text-muted">{r.visitNumber}</div>}</div>, value: (r) => r.claimNo },
+    { key: "patient", header: "Patient", render: (r) => <div className="leading-tight">{r.patientId ? <Link href={`/patients/${r.patientId}`} className="font-medium hover:underline">{c.patientName(r.patientId)}</Link> : <span className="font-medium text-muted">{r.serviceType === "EMERGENCY" ? "Not identified yet" : "Unknown patient"}</span>}<div className="font-mono text-xs text-muted">{r.crId || c.patient(r.patientId)?.shaNumber || ""}</div></div>, value: (r) => (r.patientId ? c.patientName(r.patientId) : "") },
+    { key: "intervention", header: "Service", render: (r) => <div className="max-w-[260px] leading-tight"><div className="truncate">{r.intervention || "Not stated"}</div>{(r.interventions || []).length > 1 && <div className="text-xs text-muted">and {(r.interventions || []).length - 1} more</div>}</div>, value: (r) => r.intervention || "" },
+    { key: "kind", header: "Visit", render: (r) => SERVICE_LABEL[r.serviceType] || <span className="text-muted">Earlier record</span>, value: (r) => SERVICE_LABEL[r.serviceType] || "" },
+    { key: "fund", header: "Fund" },
+    { key: "submitted", header: "Date", render: (r) => fmtDate(r.submitted), value: (r) => r.submitted || "" },
+    { key: "amount", header: "Claim total", render: (r) => kes(Number(r.amount) || 0, 0), value: (r) => Number(r.amount) || 0, align: "right" },
+    {
+      key: "status", header: "Status", value: (r) => r.status,
+      render: (r) => {
+        const left = r.serviceType === "EMERGENCY" && r.emergency?.deadline && !SENT.includes(r.status) ? timeLeft(r.emergency.deadline) : null;
+        return <div><Badge tone={r.statusTone || toneOf(r.status)}>{r.status || "Unknown"}</Badge>{left && <div className={`mt-1 text-xs ${left.tone === "bad" ? "text-bad" : left.tone === "warn" ? "text-warn" : "text-muted"}`}>{left.text}</div>}{r.remarks && <div className="mt-1 max-w-[220px] text-xs text-warn">{r.remarks}</div>}</div>;
+      },
+    },
   ],
 };
 
+function Facility() {
+  const d = useDB();
+  const user = useUser();
+  const h = d.settings[0] || {};
+  const conn = useHieStatus();
+  const row = (label: string, value: string) => <div><dt className="text-xs text-muted">{label}</dt><dd className="mt-0.5 font-medium">{value || <span className="font-normal text-muted">Not set</span>}</dd></div>;
+  return (
+    <Section title="This facility, as SHA knows it" hint="SHA reads these codes with every request. They are set by an administrator.">
+      <dl className="grid gap-x-8 gap-y-4 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
+        {row("Hospital", h.name)}{row("MFL code", h.mflCode)}{row("FR code", h.frCode)}{row("Facility level", h.kephLevel)}
+      </dl>
+      <div className="flex flex-wrap gap-2 text-[13px]">
+        <Badge tone={conn?.configured ? "ok" : "warn"}>{conn ? (conn.configured ? "Connected to SHA" : "Not connected to SHA yet") : "Checking"}</Badge>
+        {conn?.host && <Badge tone="mute">{conn.host}</Badge>}
+        {conn && <Badge tone={conn.callbacks ? "ok" : "mute"}>{conn.callbacks ? "SHA sends status updates" : "Status updates are read by pressing Refresh"}</Badge>}
+      </div>
+      {user?.role === "admin" ? <Link href="/settings" className="btn btn-secondary w-fit">Change in Settings</Link> : <p className="text-[13px] text-muted">Only an administrator can change these codes or test the connection.</p>}
+    </Section>
+  );
+}
+
+function OpenEmergencies() {
+  const d = useDB();
+  const rows = d.shaClaims.filter((c) => c.source === "hie" && c.serviceType === "EMERGENCY" && !SENT.includes(c.status));
+  if (!rows.length) return null;
+  return (
+    <Section title="Emergency claims still to send" hint="Each must reach SHA within 24 hours of arrival.">
+      <ul className="divide-y divide-line-2 rounded-lg border border-line">
+        {rows.map((c) => { const t = c.emergency?.deadline ? timeLeft(c.emergency.deadline) : null; return (
+          <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-[13px]">
+            <div><Link href={`/sha/${c.id}`} className="font-semibold text-brand hover:underline">{c.claimNo}</Link><div className="text-xs text-muted">{c.patientId ? d.patients.find((p) => p.id === c.patientId)?.name : "Patient not identified yet"}</div></div>
+            {t && <span className={t.tone === "bad" ? "font-medium text-bad" : t.tone === "warn" ? "font-medium text-warn" : "text-muted"}>{t.text}</span>}
+          </li>
+        ); })}
+      </ul>
+    </Section>
+  );
+}
+
 export default function Sha() {
   const d = useDB();
-  const h = d.settings[0];
   const [tab, setTab] = useState("claims");
-  const [q, setQ] = useState("");
-  const [res, setRes] = useState<null | { found: any | null }>(null);
-  const check = () => { const n = q.replace(/\s/g, "").toLowerCase(); if (!n) return; setRes({ found: d.patients.find((p) => p.shaNumber.toLowerCase() === n || p.nationalId === n) || null }); };
+  const [patientId, setPatientId] = useState<number | undefined>();
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const p = Number(q.get("patient"));
+    if (p) { setPatientId(p); setTab("visit"); }
+    else if (q.get("tab") && ["claims", "visit", "emergency", "facility"].includes(q.get("tab")!)) setTab(q.get("tab")!);
+  }, []);
+  const open = d.shaClaims.filter((c) => c.source === "hie" && c.serviceType === "EMERGENCY" && !SENT.includes(c.status)).length;
   return (
     <div>
-      <PageHeader title="SHA claims" description="Track every Social Health Authority claim from draft to payment. Draft claims are created from invoices." />
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: "claims", label: "Claims", count: d.shaClaims.length }, { value: "eligibility", label: "Eligibility check" }, { value: "facility", label: "Facility details" }]} />
+      <PageHeader title="SHA" description="Check cover, take the patient's consent, request preauthorisation and send claims to the Social Health Authority. Every status comes from SHA." />
+      <Tabs value={tab} onChange={setTab} tabs={[{ value: "claims", label: "Claims", count: d.shaClaims.length }, { value: "visit", label: "Eligibility and new visit" }, { value: "emergency", label: "Emergency", count: open || undefined }, { value: "facility", label: "Facility" }]} />
       <div className="mt-5">
         {tab === "claims" && <ResourcePage def={def} embedded />}
-        {tab === "eligibility" && (
-          <section className="card card-pad max-w-2xl">
-            <h2 className="card-title">Check a patient&apos;s SHA number</h2>
-            <p className="mt-1 text-[13px] text-muted">Search by SHA number or national ID. This checks the number against registered patients. Live verification with the SHA portal is switched on once the hospital receives API credentials.</p>
-            <div className="mt-5 flex gap-2.5"><div className="relative flex-1"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" /><input className="input h-10 pl-9" placeholder="SHA12345678 or national ID" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} aria-label="SHA number or national ID" /></div><button className="btn btn-primary h-10" onClick={check}>Check</button></div>
-            {res && (res.found ? (
-              <div className="mt-5 flex items-start gap-3 rounded-lg border border-[#bfe3cc] bg-ok-50 p-4"><ShieldCheck className="mt-0.5 text-ok" size={20} /><div className="text-[13px]"><div className="font-semibold text-ok">Number found on the patient register</div><div className="mt-1">{res.found.name}, {res.found.mrn}</div><div className="text-muted">SHA {res.found.shaNumber}, ID {res.found.nationalId}</div><Link href={`/patients/${res.found.id}`} className="mt-2 inline-block text-brand hover:underline">Open patient chart</Link></div></div>
-            ) : <div className="mt-5 rounded-lg border border-line bg-surface p-4 text-[13px]">No registered patient has this number. <Link href="/patients/new" className="text-brand hover:underline">Register the patient</Link> and add their SHA number.</div>)}
-          </section>
-        )}
-        {tab === "facility" && (
-          <section className="card card-pad max-w-2xl"><h2 className="card-title mb-4">Facility details used on claims</h2><dl className="kv"><dt>Facility name</dt><dd>{h.name}</dd><dt>Facility code</dt><dd>{h.facilityCode || "Not set"}</dd><dt>KRA PIN</dt><dd>{h.kra || "Not set"}</dd><dt>Registration</dt><dd>{h.registration || "Not set"}</dd><dt>Address</dt><dd>{h.address}</dd></dl><Link href="/settings" className="btn btn-secondary mt-5">Edit in settings</Link></section>
-        )}
+        {tab === "visit" && <VisitWizard initialPatientId={patientId} />}
+        {tab === "emergency" && <div className="space-y-5"><EmergencyForm /><OpenEmergencies /></div>}
+        {tab === "facility" && <Facility />}
       </div>
     </div>
   );

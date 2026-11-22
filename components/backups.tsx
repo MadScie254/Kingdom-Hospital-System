@@ -28,7 +28,7 @@ export function Backups() {
         <p className="mt-1 text-[13px] text-muted">A full copy of every record is saved every night at midnight, Nairobi time, and kept for 35 days in separate storage.</p>
         <button className="btn btn-primary mt-4" onClick={run} disabled={busy}><DatabaseBackup size={15} />{busy ? "Saving" : "Back up now"}</button>
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="mb-3 text-[13px]">{list === null ? "Loading" : last ? <>Last good backup: <strong>{eat(last.at)}</strong></> : <span className="text-bad">No successful backup yet. Press Back up now.</span>}</p>
         <div className="scroll-thin overflow-x-auto rounded-lg border border-line">
           <table className="tbl"><thead><tr><th>When</th><th>Type</th><th>Records</th><th>Size</th><th>Result</th></tr></thead>

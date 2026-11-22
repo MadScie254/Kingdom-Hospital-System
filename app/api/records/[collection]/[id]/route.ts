@@ -35,6 +35,10 @@ export const DELETE = handle<Ctx>(async (req, { params }) => {
   const u = await requireUser(req, { write: true, admin: true });
   const id = idOf(p.id);
   const s = sql();
+  if (c === "shaClaims") {
+    const [row] = await s.query(`select data->>'source' as source from sha_claims where id = $1`, [id]);
+    if (row?.source === "hie") throw new HttpError(403, "A claim that was started with SHA cannot be deleted. Close it from the claim page instead.");
+  }
   const [, rows] = await s.transaction([guard(s, u), s.query(`delete from ${tbl(c)} where id = $1 returning id`, [id]), audit(s, u.email, "delete", c, id)]);
   if (!rows.length) throw new HttpError(404, "That record no longer exists.");
   return ok({ id });

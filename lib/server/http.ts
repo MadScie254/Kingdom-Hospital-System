@@ -9,10 +9,10 @@ export const ok = (data: unknown, init?: ResponseInit) =>
   NextResponse.json(data, { ...init, headers: { "cache-control": "no-store", ...(init?.headers || {}) } });
 export const fail = (status: number, error: string) => ok({ error }, { status });
 
-export async function readBody<T = any>(req: Request): Promise<T> {
+export async function readBody<T = any>(req: Request, max = 1_000_000): Promise<T> {
   try {
     const text = await req.text();
-    if (text.length > 1_000_000) throw new Error("too large");
+    if (text.length > max) throw new Error("too large");
     const v = JSON.parse(text || "{}");
     if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error("not an object");
     return v as T;

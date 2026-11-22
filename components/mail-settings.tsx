@@ -80,7 +80,7 @@ export function MailSettings() {
         <div className="mt-3">{s === null ? null : s.configured ? <Badge tone="ok">Connected</Badge> : <Badge tone="warn">Not set up</Badge>}</div>
       </div>
 
-      <div className="max-w-2xl space-y-5">
+      <div className="min-w-0 max-w-2xl space-y-5">
         <Field label="Send alerts to" hint="Up to 5 addresses, separated by commas. You are told when someone asks for access and when a nightly backup fails. Left empty, every administrator is told.">
           <input className="input" value={alerts} onChange={(e) => setAlerts(e.target.value)} placeholder="name@example.com" inputMode="email" autoComplete="off" />
         </Field>

@@ -26,7 +26,10 @@ const TEXT: Partial<Record<CollectionName, string[]>> = {
   medicines: ["name", "category", "expiry"],
   inventory: ["item", "category", "expiry"],
 };
-const LISTS: Partial<Record<CollectionName, string[]>> = { prescriptions: ["items"], invoices: ["items"], pharmacySales: ["lines"] };
+const LISTS: Partial<Record<CollectionName, string[]>> = {
+  prescriptions: ["items"], invoices: ["items"], pharmacySales: ["lines"],
+  shaClaims: ["interventions", "lines", "diagnoses", "preauths", "doctors", "attachments"],
+};
 function tidy(c: string, rows: Row[]): Row[] {
   const fields = TEXT[c as CollectionName] || [], lists = LISTS[c as CollectionName] || [], teeth = c === "dental";
   if (!fields.length && !lists.length && !teeth) return rows;
@@ -145,6 +148,17 @@ export const db = {
       merge(r.changes || {});
       return r.result ?? {};
     } catch (e) { return failed(e); }
+  },
+  /** Run a SHA step through the HIE route. The credentials and consent tokens stay on the server. Returns the error text instead of a toast when `quiet` is set, so a screen can show it beside the form. */
+  async hie(name: string, body: Record<string, any> = {}, quiet = false): Promise<Record<string, any> | null> {
+    try {
+      const r = await api<{ changes?: Record<string, Row[]>; result?: Record<string, any> }>(`/api/hie/${name}`, { method: "POST", body });
+      merge(r.changes || {});
+      return r.result ?? {};
+    } catch (e) {
+      if (quiet && e instanceof ApiError && e.status !== 401) return { error: e.message };
+      return failed(e);
+    }
   },
 };
 

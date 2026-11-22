@@ -85,8 +85,8 @@ function InvoiceView({ id }: { id: string }) {
             <dl className="grid grid-cols-[110px_1fr] gap-y-1">
               <dt className="text-muted">Attending doctor</dt><dd>{L.doctorName(inv.doctorId)}</dd>
               <dt className="text-muted">Service area</dt><dd>{inv.source}</dd>
-              <dt className="text-muted">Cover</dt><dd>{p?.shaNumber ? `SHA, number ${p.shaNumber.replace(/^SHA/i, "")}` : p?.insurer || "Self pay"}</dd>
-              {claim && (<><dt className="text-muted">SHA claim</dt><dd><Link href="/sha" className="text-brand hover:underline">{claim.claimNo}</Link> <span className="text-muted">({claim.status})</span></dd></>)}
+              <dt className="text-muted">Cover</dt><dd>{p?.crId ? `SHA, ${p.crId}` : p?.shaNumber ? `SHA, number ${p.shaNumber.replace(/^SHA/i, "")}` : p?.insurer || "Self pay"}</dd>
+              {claim && (<><dt className="text-muted">SHA claim</dt><dd><Link href={`/sha/${claim.id}`} className="text-brand hover:underline">{claim.claimNo}</Link> <span className="text-muted">({claim.status})</span></dd></>)}
             </dl>
           </div>
         </section>

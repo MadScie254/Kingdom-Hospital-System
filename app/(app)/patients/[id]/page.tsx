@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { PatientSha } from "@/components/sha/patient-sha";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 import { BedDouble, CalendarPlus, FlaskConical, Pencil, Receipt, AlertTriangle, Phone, Mail, MapPin, IdCard, UserRound } from "lucide-react";
@@ -75,13 +76,14 @@ function Profile({ id }: { id: number }) {
               <div className="mt-1 text-[13px] text-muted">{p.mrn}, {age(p.dob)} years, {p.gender}, born {fmtDate(p.dob)}</div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge tone="info" plain>{p.bloodGroup || "Blood group unknown"}</Badge>
-                {(p.shaNumber || p.insurer) && <Badge tone={p.shaNumber ? "ok" : "mute"} plain>{p.shaNumber ? `SHA ${p.shaNumber}` : p.insurer}</Badge>}
+                {(p.crId || p.shaNumber || p.insurer) && <Badge tone={p.crId || p.shaNumber ? "ok" : "mute"} plain>{p.crId || p.shaNumber ? `SHA ${p.crId || p.shaNumber}` : p.insurer}</Badge>}
                 {adm && <Badge tone="info">Admitted, {bed?.code}</Badge>}
                 {hasAllergy && <Badge tone="bad"><AlertTriangle size={11} />Allergy: {p.allergies}</Badge>}
               </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <PatientSha patient={p} />
             {canWrite(role, "patients") && <Link href={`/patients/new?edit=${p.id}`} className="btn btn-secondary"><Pencil size={15} />Edit</Link>}
             {canWrite(role, "appointments") && <Link href="/appointments" className="btn btn-secondary"><CalendarPlus size={15} />Book</Link>}
             {canWrite(role, "labOrders") && <Link href="/lab" className="btn btn-secondary"><FlaskConical size={15} />Order lab</Link>}
@@ -151,7 +153,7 @@ function Profile({ id }: { id: number }) {
         {tab === "docs" && (
           <div className="grid gap-5 lg:grid-cols-2">
             <section className="card"><div className="card-head"><h2 className="card-title">Documents</h2></div><ul className="divide-y divide-line-2">{docs.map((x) => <li key={x.id} className="flex justify-between px-5 py-3 text-[13px]"><span>{x.title}</span><span className="text-muted">{x.type}, {fmtDate(x.uploaded)}</span></li>)}{docs.length === 0 && <li><Empty title="No documents" /></li>}</ul></section>
-            <section className="card"><div className="card-head"><h2 className="card-title">SHA claims</h2></div><ul className="divide-y divide-line-2">{claims.map((c) => <li key={c.id} className="flex items-center justify-between px-5 py-3 text-[13px]"><span>{c.claimNo}<span className="block text-xs text-muted">{c.intervention}</span></span><span className="flex items-center gap-3"><span className="tabular-nums">{kes(c.amount, 0)}</span><Status value={c.status} /></span></li>)}{claims.length === 0 && <li><Empty title="No claims" /></li>}</ul></section>
+            <section className="card"><div className="card-head"><h2 className="card-title">SHA claims</h2></div><ul className="divide-y divide-line-2">{claims.map((c) => <li key={c.id} className="flex items-center justify-between px-5 py-3 text-[13px]"><span><Link href={`/sha/${c.id}`} className="text-brand hover:underline">{c.claimNo}</Link><span className="block text-xs text-muted">{c.intervention}</span></span><span className="flex items-center gap-3"><span className="tabular-nums">{kes(Number(c.amount) || 0, 0)}</span><Badge tone={c.statusTone || "mute"}>{c.status}</Badge></span></li>)}{claims.length === 0 && <li><Empty title="No claims" /></li>}</ul></section>
           </div>
         )}
       </div>

@@ -35,7 +35,7 @@ export default function RegisterPatient() {
     const req: [string, string][] = [["name", "full name"], ["gender", "gender"], ["dob", "date of birth"], ["phone", "phone number"]];
     const errs: Record<string, string> = {};
     req.forEach(([k, l]) => { if (!String(v[k] || "").trim()) errs[k] = `Enter ${l}`; });
-    if (v.shaNumber && !/^SHA\d{6,}$/i.test(v.shaNumber.replace(/\s/g, ""))) errs.shaNumber = "SHA numbers start with SHA followed by digits";
+    if (v.shaNumber && !/^(SHA\d{6,}|CR\d{8,}(-\d)?)$/i.test(v.shaNumber.replace(/\s/g, ""))) errs.shaNumber = "Enter the SHA number (SHA followed by digits) or the Client Registry ID (CR followed by digits)";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     const row: Record<string, any> = { ...v, heightCm: Number(v.heightCm) || null, weightKg: Number(v.weightKg) || null };
@@ -73,9 +73,9 @@ export default function RegisterPatient() {
           <Field label="Weight (kg)" hint={bmi ? `Body mass index ${bmi}` : undefined}>{inp("weightKg", "number")}</Field>
           <Field label="Chronic conditions" span={2}>{inp("chronic", "text", "Hypertension, diabetes, asthma")}</Field>
         </Section>
-        <Section title="Cover" hint="SHA eligibility is checked from the SHA claims page before a claim is filed.">
+        <Section title="Cover" hint="Eligibility is checked with SHA from the SHA page before a visit starts. The Client Registry ID is saved on the patient once SHA confirms it.">
           <Field label="Primary cover"><select className="input" value={v.insurer} onChange={(e) => set("insurer", e.target.value)}>{["SHA", "Jubilee Insurance", "AAR", "Britam", "CIC", "Self pay"].map((b) => <option key={b}>{b}</option>)}</select></Field>
-          <Field label="SHA number">{inp("shaNumber", "text", "SHA12345678")}{err("shaNumber")}</Field>
+          <Field label="SHA number or Client Registry ID">{inp("shaNumber", "text", "SHA12345678")}{err("shaNumber")}</Field>
           <Field label="Insurer member number" span={2}>{inp("memberNo")}</Field>
         </Section>
         <Section title="Next of kin" hint="Contacted in an emergency or when the patient cannot consent.">

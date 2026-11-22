@@ -16,7 +16,7 @@ export function buildSeed(): DB {
 
   const settings = [{
     id: 1, name: "Kingdom Faith Based Hospital", tagline: "Faith based hospital", address: "P.O Box 2, 50205 Webuye", phone: "+254 140 058 107",
-    email: "kingdomfaithbasedhospital@gmail.com", currency: "KES", vat: 0, discount: 0, timeFormat: "24 hour", kra: "", facilityCode: "",
+    email: "kingdomfaithbasedhospital@gmail.com", currency: "KES", vat: 0, discount: 0, timeFormat: "24 hour", kra: "", mflCode: "112007", frCode: "FID-112007", kephLevel: "",
     footer: "Thank you for choosing Kingdom Faith Based Hospital.", mpesaPaybill: "", mpesaAccount: "", bank: "", registration: "",
   }];
 
@@ -258,12 +258,8 @@ export function buildSeed(): DB {
     { patientId: 12, doctorId: 6, date: at(0, 8, 40), complaint: "Wisdom tooth pain", history: "Penicillin allergy", status: "Follow up required", nextAppointment: at(5, 10, 0), teeth: teeth({ "38": "Impacted", "48": "Impacted" }), plan: "Surgical removal of 38 and 48" },
   ]);
 
-  const claimStat = ["Paid", "Approved", "Submitted", "Rejected", "Draft", "Paid"];
-  const shaClaims = mk(invoices.filter((x) => x.method === "SHA" || x.id % 6 === 0).slice(0, 14).map((inv, i) => {
-    const amt = inv.items.reduce((a: number, x: any) => a + x.qty * x.price, 0);
-    const status = claimStat[i % claimStat.length];
-    return { claimNo: `SHA2026${String(300 + i).padStart(4, "0")}`, invoiceNo: inv.no, patientId: inv.patientId, intervention: pick(["Outpatient, primary care", "Outpatient, specialist", "Inpatient admission", "Maternity package", "Imaging and diagnostics", "Chronic care, diabetes"]), fund: pick(["PHC Fund", "SHIF", "SHIF", "ECCIF"]), amount: Math.round(amt * 0.85), status, submitted: inv.date, remarks: status === "Rejected" ? "Pre authorisation missing for imaging" : "" };
-  }));
+  // SHA claims are only ever created by a real SHA visit, with statuses that SHA reports. Demo data has none.
+  const shaClaims: Row[] = [];
 
   const holidays = mk([
     { doctorId: 7, from: day(-10), to: day(10), reason: "Annual leave" }, { doctorId: 1, from: day(18), to: day(24), reason: "Conference, Mombasa" }, { doctorId: 3, from: day(3), to: day(3), reason: "Personal day" }, { doctorId: 4, from: day(30), to: day(37), reason: "Annual leave" },

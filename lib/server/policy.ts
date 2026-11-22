@@ -1,14 +1,15 @@
 import { COLLECTIONS, type CollectionName } from "../collections";
+import { SHA_CLAIM_NO_SQL } from "../claim-number";
 import { HttpError } from "./http";
 
 /** Numbers handed out by the database, never accepted from the browser. */
 export const AUTO_NUMBER: Partial<Record<CollectionName, { key: string; sql: string }>> = {
   patients: { key: "mrn", sql: `'KH' || nextval('patient_mrn_seq')` },
   invoices: { key: "no", sql: `'INV' || lpad(nextval('invoice_no_seq')::text, 4, '0')` },
-  shaClaims: { key: "claimNo", sql: `'SHA2026' || lpad(nextval('sha_claim_seq')::text, 4, '0')` },
+  shaClaims: { key: "claimNo", sql: SHA_CLAIM_NO_SQL },
 };
-/** Money records change only through the billing workflows, which check balances and totals. */
-export const ACTION_ONLY = new Set<CollectionName>(["invoices", "payments"]);
+/** Money records change only through the billing workflows, which check balances and totals. SHA claims change only through the SHA integration, so their status always comes from SHA. */
+export const ACTION_ONLY = new Set<CollectionName>(["invoices", "payments", "shaClaims"]);
 export const PROTECTED_KEYS = ["id", "mrn", "no", "claimNo"];
 
 export function parseCollection(v: string): CollectionName {

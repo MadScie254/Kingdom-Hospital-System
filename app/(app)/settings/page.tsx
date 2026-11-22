@@ -6,11 +6,12 @@ import { db, useDB, useUser } from "@/lib/store";
 import { Field, PageHeader, toast } from "@/components/ui";
 import { Backups } from "@/components/backups";
 import { MailSettings } from "@/components/mail-settings";
+import { HieSettings } from "@/components/hie-settings";
 import { download } from "@/lib/format";
 
 const GROUPS: { title: string; hint: string; fields: [string, string, string?][] }[] = [
   { title: "Hospital profile", hint: "Shown on invoices, lab reports and prescriptions.", fields: [["name", "Hospital name"], ["tagline", "Tagline"], ["address", "Address"], ["phone", "Phone"], ["email", "Hospital email", "email"], ["registration", "Registration and licence"]] },
-  { title: "Tax and facility", hint: "Used on invoices and SHA claims. Left blank until you enter them.", fields: [["kra", "KRA PIN"], ["facilityCode", "Facility code"], ["vat", "Default VAT (%)", "number"], ["discount", "Default discount (%)", "number"]] },
+  { title: "Tax and discounts", hint: "Used on invoices. Left blank until you enter them. The codes SHA needs are in the SHA connection card below.", fields: [["kra", "KRA PIN"], ["vat", "Default VAT (%)", "number"], ["discount", "Default discount (%)", "number"]] },
   { title: "Payment instructions", hint: "Printed under How to pay on every invoice once filled in.", fields: [["mpesaPaybill", "M Pesa Paybill number"], ["mpesaAccount", "M Pesa account label"], ["bank", "Bank account details"], ["footer", "Document footer message"]] },
 ];
 
@@ -44,6 +45,7 @@ export default function Settings() {
             <div className="grid gap-4 sm:grid-cols-2">{g.fields.map(([k, l, t]) => <Field key={k} label={l}><input className="input" type={t || "text"} value={v[k] ?? ""} onChange={(e) => setV({ ...v, [k]: e.target.value })} /></Field>)}</div>
           </section>
         ))}
+        {admin && <HieSettings v={v} setV={setV} />}
         <section className="card grid gap-6 p-6 lg:grid-cols-[240px_1fr]">
           <div><h2 className="card-title">Change my password</h2><p className="mt-1 text-[13px] text-muted">Use at least 10 characters. Do not share it.</p></div>
           <div className="grid max-w-xl gap-4 sm:grid-cols-2">

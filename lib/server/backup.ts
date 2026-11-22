@@ -17,6 +17,9 @@ export async function runBackup(trigger: "nightly" | "manual") {
   const s = sql();
   const tables = [...COLLECTIONS.map((c) => TABLE[c]), "app_users", "audit_log"];
   try {
+    // SHA visit references are needed to carry on with open claims after a restore. The table exists once the schema has been applied.
+    const [hie] = await s.query(`select to_regclass('public.hie_consents') as t`);
+    if (hie?.t) tables.push("hie_consents");
     const results = await s.transaction(tables.map((t) => s.query(t === "audit_log" ? `select * from audit_log where at > now() - interval '90 days'` : `select * from "${t}"`)));
     const day = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
     let rows = 0, bytes = 0, parts = 0;

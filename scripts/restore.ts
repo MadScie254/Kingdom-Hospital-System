@@ -35,9 +35,10 @@ async function main() {
   if (flag !== "--yes") { console.log("Nothing changed. Add --yes to replace the database with this backup."); process.exit(0); }
 
   const sql = neon(url!);
-  const names = [...tables.keys()];
+  // hie_consents points at sha_claims, so it goes in last. Older backups have no hie_consents, so cascade clears it with sha_claims.
+  const names = [...tables.keys()].sort((a, b) => Number(a === "hie_consents") - Number(b === "hie_consents"));
   await sql.transaction([
-    sql.query(`truncate ${names.map((n) => `"${n}"`).join(", ")} restart identity`),
+    sql.query(`truncate ${names.map((n) => `"${n}"`).join(", ")} restart identity cascade`),
     ...names.map((n) => sql.query(`insert into "${n}" select * from jsonb_populate_recordset(null::"${n}", $1::jsonb)`, [JSON.stringify(tables.get(n))])),
     ...names.map((n) => sql.query(`select setval(pg_get_serial_sequence('"${n}"', 'id'), greatest((select coalesce(max(id), 0) from "${n}"), 1))`)),
   ]);

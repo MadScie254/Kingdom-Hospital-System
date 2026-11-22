@@ -122,3 +122,57 @@ create table if not exists password_resets (
   created_at timestamptz not null default now()
 );
 create index if not exists password_resets_user_idx on password_resets (user_id, created_at);
+
+-- SHA and DHA Health Information Exchange (HIE)
+-- Consent tokens are bearer style references to a visit at SHA. They stay on the server and are never sent to the browser.
+create table if not exists hie_consents (
+  id bigserial primary key,
+  claim_id integer not null references sha_claims(id) on delete cascade,
+  patient_id integer,
+  cr_id text,
+  consent_token text,
+  auth_token text,
+  auth_guid text,
+  claim_guid text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists hie_consents_claim_key on hie_consents (claim_id);
+create index if not exists hie_consents_token_idx on hie_consents (consent_token);
+create index if not exists hie_consents_auth_idx on hie_consents (auth_token);
+create index if not exists hie_consents_guid_idx on hie_consents (claim_guid);
+
+-- One row per call to SHA. Keeps method, path, query names, status and timing, never bodies, tokens, OTPs or query values.
+-- This is the transaction log DHA asks for as certification evidence.
+create table if not exists hie_log (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  actor text,
+  action text,
+  method text not null,
+  path text not null,
+  query_keys text,
+  status integer,
+  ms integer,
+  ok boolean not null,
+  attempt integer,
+  error text,
+  request_id text
+);
+create index if not exists hie_log_at_idx on hie_log (at desc);
+
+-- Status changes pushed by SHA. The pair (subject_guid, to_state) is unique so a repeated delivery is ignored.
+create table if not exists hie_events (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  entity_type text not null,
+  subject_guid text not null,
+  from_state text,
+  to_state text not null,
+  consent_token text,
+  provider_claim_no text,
+  notes text,
+  sent_at text,
+  applied boolean not null default false
+);
+create unique index if not exists hie_events_key on hie_events (subject_guid, to_state);

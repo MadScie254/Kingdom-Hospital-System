@@ -45,7 +45,7 @@ export const WRITE: Record<Role, "*" | CollectionName[]> = {
   lab: ["labOrders", "labCatalog"],
   pharmacy: ["medicines", "pharmacySales", "inventory"],
   reception: ["patients", "appointments", "emergencies", "documents", "bookings"],
-  accounts: ["shaClaims", "expenses"],
+  accounts: ["expenses"],
   staff: [],
 };
 export const ACTION_ROLES: Record<string, Role[]> = {
@@ -56,6 +56,13 @@ export const ACTION_ROLES: Record<string, Role[]> = {
   "admission.transfer": ["admin", "doctor", "nurse"],
   "admission.discharge": ["admin", "doctor", "nurse"],
   "pharmacy.sale": ["admin", "pharmacy"],
+};
+
+/** Who may use the SHA integration. Lookups are open to anyone who registers or treats patients, claims work to the claims desk. */
+export const HIE_ROLES: Record<"lookup" | "claim" | "admin", Role[]> = {
+  lookup: ["admin", "reception", "accounts", "doctor", "nurse"],
+  claim: ["admin", "reception", "accounts"],
+  admin: ["admin"],
 };
 
 export const canRead = (role: Role | undefined, c: CollectionName) => !!role && (READ[role] === "*" || (READ[role] as CollectionName[]).includes(c));

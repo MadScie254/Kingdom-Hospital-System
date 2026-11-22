@@ -8,6 +8,10 @@ import { usePending, useDB, useLookup, useUser } from "@/lib/store";
 import { ACTION_ROLES, canRead, canWrite, ROLE_LABEL } from "@/lib/access";
 import { ANCHOR, addDays, dayName, fmtDate, fmtShort, fmtTime, kes, kesShort } from "@/lib/format";
 import { invoiceTotals } from "@/lib/billing";
+import { SHA_OPEN_LABELS, hoursLeft } from "@/lib/hie/rules";
+
+/** Dashboard groups for SHA claims. The labels are the ones SHA reports through its own states. */
+const SHA_GROUPS: [string, string[]][] = [["Visits open", ["Awaiting visit", "Visit open", "Draft", "Ready to submit"]], ["With SHA", ["Submitted", "Under review", "Needs action"]], ["Approved", ["Approved", "Sent for payment"]], ["Paid", ["Paid"]]];
 
 const C = { brand: "#2a6fae", grid: "#e6e9ed", mute: "#59646e" };
 
@@ -46,10 +50,12 @@ export default function Dashboard() {
     const lab = ["Ordered", "Collected", "Processing", "Review", "Released"].map((s) => ({ s, n: d.labOrders.filter((l) => l.status === s && (s !== "Released" || l.orderedAt.slice(0, 10) >= addDays(ANCHOR, -3))).length }));
     const critical = d.labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length;
     const lowStock = d.medicines.filter((x) => x.quantity <= x.reorder).length;
-    const rejected = d.shaClaims.filter((c) => c.status === "Rejected").length;
-    const shaOpen = d.shaClaims.filter((c) => c.status === "Submitted" || c.status === "Approved").reduce((a, c) => a + c.amount, 0);
+    const rejected = d.shaClaims.filter((c) => c.status === "Rejected" || c.status === "Failed to submit").length;
+    const shaNeeds = d.shaClaims.filter((c) => c.status === "Needs action").length;
+    const shaDue = d.shaClaims.filter((c) => c.serviceType === "EMERGENCY" && c.emergency?.deadline && !["Submitted", "Under review", "Approved", "Sent for payment", "Paid", "Rejected", "Closed", "Time barred"].includes(c.status) && hoursLeft(c.emergency.deadline) < 6).length;
+    const shaOpen = d.shaClaims.filter((c) => SHA_OPEN_LABELS.includes(c.status)).reduce((a, c) => a + (Number(c.amount) || 0), 0);
     const emerg = d.emergencies.filter((e) => e.status !== "Resolved").length;
-    return { collectedToday, collectedMonth, outstanding, overdue, occupied, wards, days, todayAppts, topDx, lab, critical, lowStock, rejected, shaOpen, emerg };
+    return { collectedToday, collectedMonth, outstanding, overdue, occupied, wards, days, todayAppts, topDx, lab, critical, lowStock, rejected, shaNeeds, shaDue, shaOpen, emerg };
   }, [d]);
 
   const settings = d.settings[0];
@@ -59,7 +65,9 @@ export default function Dashboard() {
     can("emergencies") && m.emerg > 0 && { icon: Siren, tone: "bad", text: `${m.emerg} emergency cases are open in casualty`, href: "/emergency" },
     can("invoices") && m.overdue.length > 0 && { icon: Receipt, tone: "warn", text: `${m.overdue.length} invoices are past due, ${kes(m.overdue.reduce((a, i) => a + invoiceTotals(i).total - i.paid, 0), 0)} outstanding`, href: "/billing" },
     (role === "admin" || role === "pharmacy") && m.lowStock > 0 && { icon: Pill, tone: "warn", text: `${m.lowStock} medicines are at or below reorder level`, href: "/medicines" },
-    can("shaClaims") && m.rejected > 0 && { icon: ShieldAlert, tone: "warn", text: `${m.rejected} SHA claims were rejected and can be resubmitted`, href: "/sha" },
+    can("shaClaims") && m.shaDue > 0 && { icon: ShieldAlert, tone: "bad", text: `${m.shaDue} emergency ${m.shaDue === 1 ? "claim has" : "claims have"} less than 6 hours left to reach SHA`, href: "/sha" },
+    can("shaClaims") && m.rejected > 0 && { icon: ShieldAlert, tone: "warn", text: `${m.rejected} SHA ${m.rejected === 1 ? "claim was" : "claims were"} rejected or failed to send. Open ${m.rejected === 1 ? "it" : "them"} to see SHA's reason`, href: "/sha" },
+    can("shaClaims") && m.shaNeeds > 0 && { icon: ShieldAlert, tone: "warn", text: `${m.shaNeeds} SHA ${m.shaNeeds === 1 ? "claim needs" : "claims need"} action from the hospital`, href: "/sha" },
   ].filter(Boolean) as { icon: typeof Receipt; tone: string; text: string; href: string }[];
 
   const tiles = [
@@ -169,7 +177,7 @@ export default function Dashboard() {
             <section className="card">
               <div className="card-head"><h2 className="card-title">SHA claims</h2><Link href="/sha" className="btn btn-ghost btn-sm">Open claims</Link></div>
               <div className="grid grid-cols-2 gap-px bg-line-2 p-px sm:grid-cols-4">
-                {["Draft", "Submitted", "Approved", "Paid"].map((s) => { const cs = d.shaClaims.filter((c) => c.status === s); return <div key={s} className="bg-white p-4"><div className="text-xs text-muted">{s}</div><div className="mt-1 text-lg font-semibold tabular-nums">{cs.length}</div><div className="mt-0.5 text-xs text-muted">{kesShort(cs.reduce((a, c) => a + c.amount, 0))}</div></div>; })}
+                {SHA_GROUPS.map(([label, labels]) => { const cs = d.shaClaims.filter((c) => labels.includes(c.status)); return <div key={label} className="bg-white p-4"><div className="text-xs text-muted">{label}</div><div className="mt-1 text-lg font-semibold tabular-nums">{cs.length}</div><div className="mt-0.5 text-xs text-muted">{kesShort(cs.reduce((a, c) => a + (Number(c.amount) || 0), 0))}</div></div>; })}
               </div>
               <div className="flex items-center gap-3 border-t border-line-2 px-5 py-4 text-[13px]"><span className="grid h-8 w-8 place-items-center rounded-md bg-warn-50 text-warn"><AlertTriangle size={16} /></span><span>{kes(m.shaOpen, 0)} is submitted or approved and waiting for payment.</span></div>
             </section>

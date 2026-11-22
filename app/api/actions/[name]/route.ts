@@ -6,8 +6,9 @@ import { handle, HttpError, ok, readBody, requireUser } from "@/lib/server/http"
 type Ctx = { params: Promise<{ name: string }> };
 
 export const POST = handle<Ctx>(async (req, { params }) => {
-  const action = ACTIONS[(await params).name];
+  const name = (await params).name;
+  const action = Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined; // own keys only, so constructor is not an action
   if (!action) throw new HttpError(404, "Unknown action.");
-  const u = await requireUser(req, { write: true, roles: ACTION_ROLES[(await params).name] || [] });
+  const u = await requireUser(req, { write: true, roles: (Object.hasOwn(ACTION_ROLES, name) && ACTION_ROLES[name]) || [] });
   return ok(await action(sql(), u, await readBody(req)));
 });

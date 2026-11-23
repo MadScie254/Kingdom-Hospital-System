@@ -29,6 +29,17 @@ export const FALLS_CREDIT = {
   change: "Cropped and resized",
 } as const;
 
+/**
+ * The address the Worker is hosted at. It must equal APP_ORIGIN in wrangler.jsonc (a test checks that).
+ * The homepage is prerendered at build time, where the Worker's own variables are not set, so its search tags use this unless APP_ORIGIN is in the build environment.
+ */
+export const FALLBACK_ORIGIN = "https://kingdom-hospital.dmwanjala254.workers.dev";
+
+/** The public address of the site, without a trailing slash. */
+export function siteOrigin(env: Record<string, string | undefined> = process.env): string {
+  return (env.APP_ORIGIN || FALLBACK_ORIGIN).replace(/\/$/, "");
+}
+
 /** Where a signed in person lands. The logo inside the portal goes here, whatever the role. */
 export const PORTAL_HOME = "/dashboard";
 

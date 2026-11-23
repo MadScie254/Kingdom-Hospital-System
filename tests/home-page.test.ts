@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { HomePage } from "../components/site/home-page";
-import { FALLS_CREDIT, NAV, SITE } from "../lib/site";
+import { NAV, SITE } from "../lib/site";
 import { SERVICE_GROUPS } from "../lib/site-content";
 
 // The page as the server sends it: what a visitor sees before any script runs, and what a search engine reads.
@@ -80,7 +80,7 @@ test("every link inside the page lands on something, and nothing is empty", () =
 
 test("links to other sites open safely in a new tab", () => {
   const external = html.match(/<a [^>]*href="https?:\/\/[^"]+"[^>]*>/g) ?? [];
-  assert.ok(external.length >= 4, "directions, Facebook, license and photo source");
+  assert.ok(external.length >= 3, "directions in the hero and in visit us, and Facebook");
   for (const tag of external) {
     assert.match(tag, /target="_blank"/, tag);
     assert.match(tag, /rel="noopener noreferrer"/, tag);
@@ -99,15 +99,12 @@ test("a visitor can reach the hospital: call, email, address, hours and directio
   assert.ok(!/postal|P\.?O\.? ?Box/i.test(text), "no postal address");
 });
 
-test("the Webuye Falls photo is credited with its author, license, links and the change", () => {
-  assert.ok(text.includes(FALLS_CREDIT.author));
-  assert.ok(text.includes(FALLS_CREDIT.license));
-  assert.ok(text.includes("Wikimedia Commons"));
-  assert.ok(text.includes(FALLS_CREDIT.change));
-  assert.ok(html.includes(`href="${FALLS_CREDIT.licenseUrl}"`));
-  assert.ok(html.includes(`href="${FALLS_CREDIT.sourceUrl}"`));
+test("every photo is the hospital's own, so the footer carries no outside credit", () => {
+  assert.ok(text.includes("Hospital photos by Kingdom Faith Based Hospital"));
+  assert.ok(!/Wikimedia|Galkey|CC BY/.test(text), "no third party photo credit");
+  assert.ok(!/webuye-falls|eye-clinic/.test(html), "the retired photos are not on the page");
+  assert.ok(html.includes('src="/images/home/grounds.webp"'), "the hospital grounds photo is on the page");
 });
-
 test("both sign in doors are on the page, and so is a way for new staff to ask for access", () => {
   assert.ok((html.match(/href="\/login\?as=staff"/g) ?? []).length >= 2, "staff door in the header and at the foot");
   assert.ok((html.match(/href="\/login\?as=admin"/g) ?? []).length >= 2, "administrator door in the header and at the foot");

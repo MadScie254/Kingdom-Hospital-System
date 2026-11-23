@@ -1,4 +1,4 @@
-import { FALLS_CREDIT, SITE } from "@/lib/site";
+import { SITE } from "@/lib/site";
 import { ABOUT, CATARACT, COPY, EYE_URGENT, FACTS, HERO, PHOTOS, SHA_COPY, VISIT, VISIT_FLOW } from "@/lib/site-content";
 import { CataractSlider } from "./cataract-slider";
 import { EyeChart } from "./eye-chart";
@@ -37,7 +37,7 @@ export function HomePage() {
               </div>
             </div>
             <figure className="hero-lens">
-              <Pic photo={PHOTOS["eye-clinic"]} className="lens-photo" priority />
+              <Pic photo={PHOTOS.grounds} className="lens-photo" priority />
             </figure>
           </div>
         </section>
@@ -139,9 +139,9 @@ export function HomePage() {
                 ))}
               </ol>
             </Reveal>
-            <Reveal as="figure" className="about-falls about-figure">
-              <Pic photo={PHOTOS["webuye-falls"]} />
-              <figcaption>{COPY.about.fallsCaption}</figcaption>
+            <Reveal as="figure" className="about-grounds about-figure">
+              <Pic photo={PHOTOS.grounds} />
+              <figcaption>{COPY.about.groundsCaption}</figcaption>
             </Reveal>
           </div>
         </section>
@@ -250,17 +250,6 @@ export function HomePage() {
           </address>
           <div className="credits">
             <p>{COPY.footer.photos}</p>
-            <p>
-              Photo of {FALLS_CREDIT.title} by {FALLS_CREDIT.author},{" "}
-              <a href={FALLS_CREDIT.licenseUrl} {...EXTERNAL}>
-                {FALLS_CREDIT.license}
-              </a>
-              , via{" "}
-              <a href={FALLS_CREDIT.sourceUrl} {...EXTERNAL}>
-                Wikimedia Commons
-              </a>
-              . {FALLS_CREDIT.change}.
-            </p>
           </div>
         </div>
       </footer>

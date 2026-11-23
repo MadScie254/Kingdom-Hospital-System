@@ -48,7 +48,7 @@ export const COPY = {
   about: {
     title: "About the hospital",
     flowTitle: "When you come to the hospital",
-    fallsCaption: "Webuye Falls, on the Nzoia River in Webuye.",
+    groundsCaption: "The hospital grounds at Malaha.",
     buildingCaption: "The hospital at Malaha.",
   },
   insurance: { title: "Insurance and payment" },
@@ -205,16 +205,10 @@ export const META = {
 
 export type Photo = { src: string; alt: string; width: number; height: number };
 
-export const PHOTOS: Record<"building" | "eye-clinic" | "eye-surgery" | "ward" | "laboratory" | "webuye-falls", Photo> = {
+export const PHOTOS: Record<"building" | "eye-surgery" | "ward" | "laboratory" | "grounds", Photo> = {
   building: {
     src: "/images/home/building.webp",
     alt: "The front of Kingdom Faith Based Hospital, a single storey stone building with a covered veranda.",
-    width: 1200,
-    height: 900,
-  },
-  "eye-clinic": {
-    src: "/images/home/eye-clinic.webp",
-    alt: "The eye clinic, with an examination chair, a slit lamp, an eye chart and a rack of spectacle frames.",
     width: 1200,
     height: 900,
   },
@@ -236,10 +230,10 @@ export const PHOTOS: Record<"building" | "eye-clinic" | "eye-surgery" | "ward" |
     width: 1200,
     height: 900,
   },
-  "webuye-falls": {
-    src: "/images/home/webuye-falls.webp",
-    alt: "Webuye Falls, where the Nzoia River tumbles over rocks, with green bush on both banks.",
-    width: 960,
-    height: 600,
+  grounds: {
+    src: "/images/home/grounds.webp",
+    alt: "A van parked on the gravel drive in front of the Faith Based Hospital building, with palm trees and a water tank behind it.",
+    width: 1040,
+    height: 694,
   },
 };

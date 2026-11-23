@@ -208,7 +208,7 @@ export type Photo = { src: string; alt: string; width: number; height: number };
 export const PHOTOS: Record<"building" | "eye-surgery" | "ward" | "laboratory" | "grounds", Photo> = {
   building: {
     src: "/images/home/building.webp",
-    alt: "The front of Kingdom Faith Based Hospital, a single storey stone building with a covered veranda.",
+    alt: "The front of Kingdom Faith Based Hospital, a single storey stone building with a covered veranda, a lawn and a gravel drive.",
     width: 1200,
     height: 900,
   },

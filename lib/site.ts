@@ -32,6 +32,16 @@ export const FALLS_CREDIT = {
 /** Where a signed in person lands. The logo inside the portal goes here, whatever the role. */
 export const PORTAL_HOME = "/dashboard";
 
+/**
+ * Pages anyone can open, which show no portal data. The portal's store skips its first load on these:
+ * a signed in member of staff would download the whole hospital's records for nothing, and a visitor would get a 401 in the console.
+ */
+export const PUBLIC_PAGES: readonly string[] = ["/"];
+
+export function isPublicPage(pathname: string): boolean {
+  return PUBLIC_PAGES.includes(pathname);
+}
+
 export type LoginMode = "staff" | "admin";
 
 /** The sign in door, taken from `?as=admin` or `?as=staff`. Anything else is the staff door. */

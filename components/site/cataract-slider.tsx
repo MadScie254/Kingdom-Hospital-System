@@ -45,7 +45,7 @@ function sweepValue(elapsed: number): number | null {
  * It starts clear, so with no JavaScript the photo simply shows. It sweeps once when it first scrolls into view,
  * unless the person asked for reduced motion or has already touched it. The range input does arrows, Home, End and PageUp and PageDown by itself.
  */
-export function CataractSlider({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
+export function CataractSlider({ src, alt, caption, width, height }: { src: string; alt: string; caption?: string; width?: number; height?: number }) {
   const [value, setValue] = useState(100);
   const frame = useRef<HTMLDivElement>(null);
   const touched = useRef(false);
@@ -94,7 +94,7 @@ export function CataractSlider({ src, alt, caption }: { src: string; alt: string
     <figure className="site-slider" onPointerDown={takeOver} onKeyDown={takeOver}>
       <div ref={frame} className="site-slider-frame" style={{ "--cloud": (100 - value) / 100 } as CSSProperties}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="site-slider-photo" src={src} alt={alt} loading="lazy" decoding="async" style={{ filter: filterFor(value) }} />
+        <img className="site-slider-photo" src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" style={{ filter: filterFor(value) }} />
         <span className="site-slider-veil" aria-hidden="true" />
       </div>
       <input

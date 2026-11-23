@@ -35,6 +35,7 @@ export const FACTS = [
 ] as const;
 
 export const COPY = {
+  facts: { label: "At a glance" },
   services: { title: "Our services", intro: "Open a group to see what it includes." },
   eye: {
     title: "Eye care and cataract surgery",

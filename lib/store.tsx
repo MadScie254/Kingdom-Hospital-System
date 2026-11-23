@@ -4,6 +4,7 @@ import { toast } from "@/components/ui";
 import { api, ApiError } from "./api";
 import type { Role } from "./access";
 import { emptyDB, type CollectionName, type DB, type Row } from "./collections";
+import { isPublicPage } from "./site";
 
 export type User = { id: number; email: string; name: string; role: Role; departments: number[]; position?: string | null; mustChange?: boolean };
 type Status = "loading" | "ready" | "unauth" | "error";
@@ -165,6 +166,8 @@ export const db = {
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    // The public homepage shows no portal data. Loading it there would send a visitor a 401 and a signed in member of staff the whole database.
+    if (isPublicPage(window.location.pathname)) return;
     loadAll();
     const refresh = () => { if (document.visibilityState === "visible" && status === "ready" && Date.now() - loadedAt > 60_000) loadAll(); };
     document.addEventListener("visibilitychange", refresh);

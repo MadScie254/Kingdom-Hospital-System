@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DOORS, FALLS_CREDIT, NAV, PORTAL_HOME, SITE, allowedForMode, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
+import { DOORS, FALLS_CREDIT, NAV, PORTAL_HOME, SITE, allowedForMode, isPublicPage, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
 
 test("the phone number is shown and linked with the same digits", () => {
   assert.equal(SITE.phoneDisplay, "0742 007 277");
@@ -87,5 +87,12 @@ test("the session answer is trusted only when it says signedIn is exactly true",
   const signedOut = { signedIn: false, role: "" };
   for (const bad of [null, undefined, "yes", 1, [], {}, { signedIn: "true" }, { signedIn: 1 }, { signedIn: false, role: "admin" }]) {
     assert.deepEqual(parseSessionAnswer(bad), signedOut, JSON.stringify(bad));
+  }
+});
+
+test("only the homepage is a public page that must not load the portal's data", () => {
+  assert.equal(isPublicPage("/"), true);
+  for (const p of ["/login", "/signup", "/forgot", "/reset", "/dashboard", "/settings", "/api/data", "", "/index", "//"]) {
+    assert.equal(isPublicPage(p), false, p);
   }
 });

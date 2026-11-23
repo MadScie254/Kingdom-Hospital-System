@@ -135,6 +135,9 @@ export function SiteHeader() {
             </ul>
           </nav>
           <PortalLink variant="menu" />
+          <a className="site-call site-menu-call" href={`tel:${SITE.phoneTel}`}>
+            <span className="site-call-label">Call</span> <span>{SITE.phoneDisplay}</span>
+          </a>
         </div>
 
         <div className="site-actions">

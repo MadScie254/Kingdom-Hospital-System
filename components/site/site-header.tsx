@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, SITE } from "@/lib/site";
 import { PortalLink } from "./portal-link";
 
-/** From this width the section links sit in the header bar. Below it they live in a slide in menu. `home.css` uses the same number. */
-const WIDE = "(min-width: 920px)";
+/** From this width the section links sit in the header bar. Below it they live in a slide in menu. `home.css` uses the same number, in rem so a larger default text size switches to the menu earlier (57.5rem is 920 px at the default size). */
+const WIDE = "(min-width: 57.5rem)";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), summary, input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Logo, section links, Call and Sign in. A shadow and a smaller bar after the first 8 px of scroll, the section being read is marked,
- * and below 920 px the links open in a slide in menu that traps focus, closes on Escape, a link tap or the backdrop, and holds the page still.
+ * and below 57.5rem the links open in a slide in menu that traps focus, closes on Escape, a link tap or the backdrop, and holds the page still.
  */
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);

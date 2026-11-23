@@ -35,7 +35,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1fr_1.1fr]">
+    <main className="grid min-h-screen lg:grid-cols-[1fr_1.1fr]">
       <section className="hidden bg-brand-50 p-12 lg:flex lg:flex-col lg:justify-between">
         <HomeLogo height={84} />
         <div className="max-w-md">
@@ -87,6 +87,6 @@ export default function Signup() {
           </form>
         )}
       </section>
-    </div>
+    </main>
   );
 }

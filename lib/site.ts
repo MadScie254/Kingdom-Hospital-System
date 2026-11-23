@@ -110,6 +110,7 @@ export function jsonLd(origin: string): Record<string, unknown> {
     image: `${origin}/og.jpg`,
     telephone: SITE.phoneTel,
     email: SITE.email,
+    hasMap: SITE.mapsUrl,
     description: "A faith based hospital at Malaha, Webuye, with an eye clinic, cataract surgery, an operating theatre, a dental clinic and inpatient and outpatient care, open 24 hours.",
     address: {
       "@type": "PostalAddress",

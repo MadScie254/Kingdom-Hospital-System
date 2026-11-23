@@ -21,7 +21,7 @@ export default function Forgot() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-brand-50 p-5">
+    <main className="grid min-h-screen place-items-center bg-brand-50 p-5">
       <div className="w-full max-w-[420px] rounded-xl border border-line bg-white p-7 sm:p-8">
         <HomeLogo height={52} />
         {done ? (
@@ -43,6 +43,6 @@ export default function Forgot() {
           </form>
         )}
       </div>
-    </div>
+    </main>
   );
 }

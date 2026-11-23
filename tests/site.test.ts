@@ -40,6 +40,7 @@ test("the structured data describes a hospital that is open 24 hours", () => {
   assert.equal(ld.url, "https://h.example");
   assert.equal(ld.telephone, "+254742007277");
   assert.equal(ld.email, SITE.email);
+  assert.equal(ld.hasMap, SITE.mapsUrl, "a map link search engines can show");
   assert.equal(ld.address.addressLocality, "Matulo");
   assert.equal(ld.address.addressRegion, "Bungoma County");
   assert.equal(ld.address.addressCountry, "KE");

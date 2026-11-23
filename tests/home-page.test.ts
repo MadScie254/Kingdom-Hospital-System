@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { createElement } from "react";
@@ -149,4 +149,15 @@ test("the cataract slider is on the page, over the photo of the building", () =>
 test("the hospital's number in running text never breaks across two lines", () => {
   const kept = html.match(/<span class="nowrap">0742 007 277<\/span>/g) ?? [];
   assert.ok(kept.length >= 3, `only ${kept.length} protected numbers: the open 24 hours fact, the eye emergency line and the visit emergency note`);
+});
+
+test("the header script and the stylesheet switch to the phone menu at the same width, in rem", () => {
+  const css = readFileSync(join(process.cwd(), "app/home.css"), "utf8");
+  const header = readFileSync(join(process.cwd(), "components/site/site-header.tsx"), "utf8");
+  const script = header.match(/const WIDE = "\(min-width: ([\d.]+)rem\)"/)?.[1];
+  assert.ok(script, "the header's WIDE query is written in rem, so a larger default text size switches layout too");
+  assert.ok(css.includes(`@media (min-width: ${script}rem)`), `the stylesheet has a min-width ${script}rem query`);
+  const max = css.match(/@media \(max-width: ([\d.]+)rem\)/)?.[1];
+  assert.equal(Number(max), Number((Number(script) - 0.01).toFixed(2)), "the phone menu query ends where the wide one begins");
+  assert.ok(!/@media \((?:min|max)-width: \d+(?:\.\d+)?px\)/.test(css), "no pixel breakpoints in home.css");
 });

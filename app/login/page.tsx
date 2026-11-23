@@ -61,7 +61,7 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+    <main className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <section className="relative hidden overflow-hidden bg-brand-50 p-12 lg:flex lg:flex-col lg:justify-between">
         <HomeLogo height={84} />
         <div className="relative z-10 max-w-md">
@@ -99,6 +99,6 @@ export default function Login() {
           <p className="mt-3 text-center text-xs leading-relaxed text-muted">Patient records are confidential and every change is logged against your name.</p>
         </form>
       </section>
-    </div>
+    </main>
   );
 }

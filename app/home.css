@@ -1,0 +1,1523 @@
+/*
+ * The public homepage. Everything is scoped under .home, so the portal's styles are untouched.
+ *
+ * Look: an eye chart on ink navy, then quiet flat bands. One typeface (Atkinson Hyperlegible Next), 18 px on 1.6.
+ * Motion: one easing and three durations (160, 420, 900 ms). The only orchestrated moment is the chart coming into focus on load.
+ * Everything animated is switched off by the single prefers-reduced-motion block at the end, and the page is fully
+ * readable with no JavaScript: the only hidden state (a reveal waiting for scroll) exists only under html.js.
+ */
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@keyframes home-focus {
+  from {
+    filter: blur(var(--blur-from, 16px));
+    opacity: 0.2;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes home-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes home-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html:has(.home) {
+  scroll-padding-top: 5.25rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.home) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------- tokens and base ---------- */
+
+.home {
+  --ink: #0e2a47;
+  --azure: #2a6fae;
+  --lens: #8ec1ee;
+  --wash: #eaf3fb;
+  --chart: #fbfdff;
+  --signal: #b8362b;
+  /* The same red, lifted so it reads on ink navy. Used only where the 24 hour marker sits on navy. */
+  --signal-bright: #f0675a;
+  --ink-2: #3b5370;
+  --rule: rgb(14 42 71 / 0.16);
+  --rule-light: rgb(142 193 238 / 0.28);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t1: 160ms;
+  --t2: 420ms;
+  --t3: 900ms;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --measure: 40rem;
+
+  font-family: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--chart);
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+.home *,
+.home *::before,
+.home *::after {
+  box-sizing: border-box;
+}
+
+.home h1,
+.home h2,
+.home h3,
+.home p,
+.home ul,
+.home ol,
+.home dl,
+.home dd,
+.home figure {
+  margin: 0;
+}
+
+.home h1,
+.home h2,
+.home h3 {
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.home h2 {
+  font-size: clamp(1.95rem, 1.25rem + 3vw, 3.1rem);
+}
+
+.home h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+.home p {
+  max-width: var(--measure);
+}
+
+.home a {
+  color: var(--azure);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+.home a:hover {
+  color: var(--ink);
+}
+
+.home :focus-visible {
+  outline: 3px solid var(--azure);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.home .band-ink :focus-visible {
+  outline-color: var(--lens);
+}
+
+/* The skip link moves focus to main so the next Tab starts below the header. Main is not a control, so it gets no ring. */
+.home main:focus,
+.home main:focus-visible {
+  outline: none;
+}
+
+.home img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.home .nowrap {
+  white-space: nowrap;
+}
+
+.home .site-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.home .wrap {
+  width: min(100% - 2 * var(--gutter), 72rem);
+  margin-inline: auto;
+}
+
+.home .band {
+  padding-block: clamp(3.25rem, 7vw, 6rem);
+}
+
+.home .band-ink {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+.home .band-ink a {
+  color: var(--lens);
+}
+
+.home .band-ink a:hover {
+  color: var(--chart);
+}
+
+.home .band-wash {
+  background: var(--wash);
+}
+
+.home .section-head {
+  max-width: var(--measure);
+  margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.home .intro {
+  margin-top: 0.75rem;
+  color: var(--ink-2);
+}
+
+.home .cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.7rem 1.4rem;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color var(--t1) linear, color var(--t1) linear, border-color var(--t1) linear;
+}
+
+.home .band-ink .cta-light {
+  background: var(--chart);
+  color: var(--ink);
+}
+
+.home .band-ink .cta-light:hover {
+  background: var(--lens);
+  color: var(--ink);
+}
+
+.home .band-ink .cta-ghost {
+  border-color: var(--lens);
+  color: var(--chart);
+}
+
+.home .band-ink .cta-ghost:hover {
+  background: rgb(142 193 238 / 0.16);
+  color: var(--chart);
+}
+
+/* The 24 hour marker: a small signal light. */
+.home .mark-24 {
+  --mark: var(--signal);
+  display: inline-block;
+  flex: none;
+  width: 0.42em;
+  height: 0.42em;
+  margin: 0 0.5em 0 0.22em;
+  border-radius: 50%;
+  background: var(--mark);
+  box-shadow: 0 0 0 0.2em color-mix(in srgb, var(--mark) 22%, transparent);
+  vertical-align: 0.1em;
+}
+
+.home .band-ink .mark-24 {
+  --mark: var(--signal-bright);
+}
+
+/* ---------- header ---------- */
+
+.home .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--chart);
+  border-bottom: 1px solid var(--rule);
+  transition: box-shadow var(--t1) linear;
+}
+
+.home .site-header.is-scrolled {
+  box-shadow: 0 10px 24px -14px rgb(14 42 71 / 0.45);
+}
+
+/* Hidden by clipping, not by sitting off screen, so it cannot show when a phone's overscroll bounce moves the header. */
+.home .site-skip {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  padding: 0.75rem 1.1rem;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--chart);
+  font-weight: 600;
+}
+
+.home .site-skip:focus {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  color: var(--chart);
+}
+
+.home .site-bar {
+  width: min(100% - 2 * var(--gutter), 72rem);
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  padding-block: 0.8rem;
+  transition: padding var(--t2) var(--ease);
+}
+
+.home .is-scrolled .site-bar {
+  padding-block: 0.4rem;
+}
+
+.home .site-logo {
+  display: block;
+  flex: none;
+}
+
+.home .site-logo img {
+  height: 46px;
+  width: auto;
+  transition: height var(--t2) var(--ease);
+}
+
+.home .is-scrolled .site-logo img {
+  height: 38px;
+}
+
+.home .site-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.home .site-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.1rem;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--t1) linear, color var(--t1) linear;
+}
+
+.home .site-btn:hover {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+.home .site-btn-solid {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+.home .site-btn-solid:hover {
+  background: var(--azure);
+  border-color: var(--azure);
+}
+
+.home .site-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: var(--azure);
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--t1) linear;
+}
+
+.home .site-call:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+.home .site-call-number {
+  display: none;
+}
+
+@media (min-width: 30rem) {
+  .home .site-call-number {
+    display: inline;
+  }
+}
+
+.home .site-burger,
+.home .site-menu-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.home .site-burger:hover,
+.home .site-menu-close:hover {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+/* Sign in: a native details element. */
+.home .site-signin {
+  position: relative;
+}
+
+.home .site-signin > summary {
+  list-style: none;
+}
+
+.home .site-signin > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home .site-signin[open] > summary {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+.home .site-signin-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 5;
+  width: 21rem;
+  max-width: calc(100vw - 2 * var(--gutter));
+  padding: 0.4rem;
+  list-style: none;
+  background: var(--chart);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px -18px rgb(14 42 71 / 0.5);
+  animation: home-drop var(--t1) var(--ease) both;
+}
+
+.home .site-signin-list a {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 5px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home .site-signin-list a:hover {
+  background: var(--wash);
+  color: var(--ink);
+}
+
+.home .site-door-title {
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.home .site-door-blurb {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* Section links: wide layout first. The slide in menu below 57.5rem (920 px at the default text size) is in the media query that follows. */
+.home .site-menu {
+  display: contents;
+}
+
+.home .site-menu-close,
+.home .site-menu-doors,
+.home .site-menu-call,
+.home .site-burger,
+.home .site-backdrop {
+  display: none;
+}
+
+.home .site-menu > nav {
+  margin-inline: auto;
+}
+
+.home .site-nav {
+  display: flex;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home .site-nav a {
+  position: relative;
+  display: block;
+  padding: 0.55rem 0.85rem;
+  border-radius: 5px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--t1) linear;
+}
+
+.home .site-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.2rem;
+  height: 2px;
+  background: var(--azure);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t2) var(--ease);
+}
+
+.home .site-nav a:hover {
+  color: var(--azure);
+}
+
+.home .site-nav a[aria-current="location"] {
+  color: var(--azure);
+}
+
+.home .site-nav a[aria-current="location"]::after {
+  transform: scaleX(1);
+}
+
+@media (max-width: 57.49rem) {
+  .home .site-burger {
+    display: inline-flex;
+  }
+
+  .home .site-signin,
+  .home .site-actions > .site-btn-solid {
+    display: none;
+  }
+
+  .home .site-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgb(14 42 71 / 0.5);
+    animation: home-fade var(--t1) linear both;
+  }
+
+  .home .site-menu {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    width: min(88vw, 22rem);
+    padding: 5rem 1.25rem 2rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--chart);
+    box-shadow: -24px 0 48px -24px rgb(14 42 71 / 0.5);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform var(--t2) var(--ease), visibility 0s linear var(--t2);
+  }
+
+  .home .site-menu.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--t2) var(--ease), visibility 0s;
+  }
+
+  .home .site-menu-close {
+    display: inline-flex;
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+  }
+
+  .home .site-menu > nav {
+    margin: 0;
+  }
+
+  .home .site-nav {
+    flex-direction: column;
+    gap: 0;
+    margin: 0 0 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .home .site-nav a {
+    padding: 0.95rem 0.25rem;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    font-size: 1.2rem;
+  }
+
+  .home .site-nav a::after {
+    left: 0.25rem;
+    right: auto;
+    width: 2.5rem;
+    bottom: 0.5rem;
+  }
+
+  .home .site-menu-doors {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home .site-menu-call {
+    display: flex;
+    justify-content: center;
+    min-height: 3.25rem;
+    font-size: 1.1rem;
+  }
+
+  .home .site-menu-doors .site-door {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .home .site-menu-doors .site-door:hover {
+    background: var(--ink);
+    color: var(--chart);
+  }
+
+  .home .site-menu-doors .site-door:hover .site-door-blurb {
+    color: var(--lens);
+  }
+}
+
+/* ---------- hero: the eye chart ---------- */
+
+.home .hero {
+  padding-block: clamp(2rem, 3.5vw, 3.5rem) clamp(3rem, 6vw, 5.5rem);
+  overflow: clip;
+}
+
+.home .hero-grid {
+  display: grid;
+  gap: 2.75rem;
+}
+
+@media (min-width: 57.5rem) {
+  .home .hero-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+  }
+}
+
+.home .chart {
+  container-type: inline-size;
+  display: grid;
+}
+
+.home .chart-row {
+  --k: 5;
+  max-width: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.08em 0.1em;
+  border-bottom: 1px solid var(--rule-light);
+  font-size: 1.2rem;
+  font-size: max(1.2rem, calc(var(--k) * 1cqw));
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  animation: home-focus var(--t3) var(--ease) both;
+  animation-delay: calc(var(--row, 0) * 140ms + 120ms);
+}
+
+.home .chart-row:nth-child(1) {
+  --k: 19.5;
+  border-top: 1px solid var(--rule-light);
+  letter-spacing: -0.035em;
+}
+
+.home .chart-row:nth-child(2) {
+  --k: 8.8;
+}
+
+.home .chart-row:nth-child(3) {
+  --k: 7.4;
+}
+
+.home .chart-row:nth-child(4) {
+  --k: 6.2;
+}
+
+.home .chart-row:nth-child(5) {
+  --k: 5.4;
+}
+
+.home .chart-row:nth-child(6) {
+  --k: 4.7;
+}
+
+.home .chart-row:nth-child(7) {
+  --k: 4.2;
+}
+
+/* A browser without container units (older than 2022) would show every row at the same size. Approximate the chart with the screen width instead. */
+@supports not (width: 1cqw) {
+  .home .chart-row {
+    font-size: max(1.2rem, calc(var(--k) * 0.86vw));
+  }
+
+  .home .chart-acuity {
+    font-size: 0.8rem;
+  }
+}
+
+@supports not (width: 1cqw) {
+  @media (min-width: 57.5rem) {
+    .home .chart-row {
+      /* The chart column stops growing at about 660 px, so the size does too. */
+      font-size: min(max(1.2rem, calc(var(--k) * 0.5vw)), calc(var(--k) * 6.6px));
+    }
+  }
+}
+
+.home .chart-text {
+  min-width: 0;
+}
+
+.home .chart-text a {
+  color: var(--chart);
+  text-decoration: none;
+  border-bottom: 0.06em solid var(--lens);
+}
+
+.home .chart-text a:hover {
+  color: var(--lens);
+}
+
+.home .chart-acuity {
+  flex: none;
+  font-size: max(0.8rem, 0.95cqw);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--lens);
+  font-variant-numeric: tabular-nums;
+}
+
+.home .hero-lead {
+  margin-top: 1.5rem;
+  max-width: 34rem;
+  font-size: 1.3rem;
+  line-height: 1.45;
+}
+
+.home .hero-place {
+  margin-top: 0.6rem;
+  color: var(--lens);
+}
+
+.home .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.home .hero-lens {
+  justify-self: center;
+  width: min(74vw, 26rem);
+  aspect-ratio: 1;
+}
+
+@media (min-width: 57.5rem) {
+  .home .hero-lens {
+    width: min(100%, 27rem);
+  }
+}
+
+.home .lens-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 64% 42%;
+  border-radius: 50%;
+  outline: 2px solid var(--lens);
+  outline-offset: 0.7rem;
+  --blur-from: 24px;
+  animation: home-focus var(--t3) var(--ease) 520ms both;
+}
+
+/* ---------- facts ---------- */
+
+.home .facts {
+  padding-block: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.home .facts-list {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+
+.home .fact {
+  padding: 1rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.home .fact:first-child {
+  border-top: 0;
+}
+
+.home .fact-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.home .fact-text {
+  margin-top: 0.2rem;
+  color: var(--ink-2);
+}
+
+@media (min-width: 40rem) {
+  .home .facts-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 2rem;
+  }
+
+  .home .fact:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+@media (min-width: 62rem) {
+  .home .facts-list {
+    grid-template-columns: repeat(4, 1fr);
+    column-gap: 0;
+  }
+
+  .home .fact,
+  .home .fact:nth-child(2) {
+    padding: 0.35rem 1.5rem;
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  .home .fact:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ---------- services ---------- */
+
+.home .svc-list {
+  border-top: 2px solid var(--ink);
+}
+
+.home .svc {
+  border-bottom: 1px solid var(--rule);
+}
+
+.home .svc-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 1rem;
+  align-items: center;
+  padding: 1.15rem 0.5rem 1.15rem 0;
+  cursor: pointer;
+  list-style: none;
+  background: linear-gradient(var(--wash), var(--wash)) no-repeat left / 0% 100%;
+  transition: background-size var(--t2) var(--ease), padding var(--t2) var(--ease);
+}
+
+.home .svc-head::-webkit-details-marker {
+  display: none;
+}
+
+.home .svc-head:hover,
+.home .svc-head:focus-visible,
+.home .svc[open] > .svc-head {
+  background-size: 100% 100%;
+  padding-left: 1rem;
+}
+
+.home .svc-title {
+  grid-column: 1;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.home .svc-summary {
+  grid-column: 1;
+  color: var(--ink-2);
+}
+
+.home .svc-chevron {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.5rem;
+  border-right: 2px solid var(--azure);
+  border-bottom: 2px solid var(--azure);
+  transform: translateY(-0.15rem) rotate(45deg);
+  transition: transform var(--t2) var(--ease);
+}
+
+.home .svc[open] > .svc-head .svc-chevron {
+  transform: translateY(0.1rem) rotate(-135deg);
+}
+
+@media (min-width: 52rem) {
+  .home .svc-head {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr) auto;
+  }
+
+  .home .svc-title {
+    grid-column: 1;
+  }
+
+  .home .svc-summary {
+    grid-column: 2;
+  }
+
+  .home .svc-chevron {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+.home .svc-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--t2) var(--ease), opacity var(--t2) var(--ease);
+}
+
+@starting-style {
+  .home .svc[open] > .svc-body {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.home .svc-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.home .svc-content {
+  display: grid;
+  gap: 1.25rem 3rem;
+  padding: 0.5rem 0.5rem 1.75rem 1rem;
+}
+
+@media (min-width: 52rem) {
+  .home .svc-content {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  }
+}
+
+.home .svc-items,
+.home .signs {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  padding: 0;
+  list-style: none;
+}
+
+.home .svc-items li,
+.home .signs li {
+  position: relative;
+  padding-left: 1.2rem;
+}
+
+.home .svc-items li::before,
+.home .signs li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--azure);
+}
+
+.home .svc-text {
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+}
+
+.home .svc-photo {
+  width: min(100%, 26rem);
+  border-radius: 6px;
+}
+
+/* ---------- eye care ---------- */
+
+.home .eye-grid {
+  display: grid;
+  gap: 3rem 4.5rem;
+}
+
+/* On a phone the wrappers vanish and the four blocks read as: facts, slider, steps, photo. */
+.home .eye-main,
+.home .eye-side {
+  display: contents;
+}
+
+.home .eye-text {
+  order: 1;
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.home .eye-slider {
+  order: 2;
+}
+
+.home .eye-steps {
+  order: 3;
+}
+
+.home .eye-surgery {
+  order: 4;
+}
+
+@media (min-width: 62rem) {
+  .home .eye-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .home .eye-main,
+  .home .eye-side {
+    display: grid;
+    gap: 3.5rem;
+    align-content: start;
+  }
+
+  .home .eye-text,
+  .home .eye-slider,
+  .home .eye-steps,
+  .home .eye-surgery {
+    order: 0;
+  }
+}
+
+.home .eye-text h3,
+.home .eye-steps h3 {
+  margin-bottom: 0.75rem;
+}
+
+.home .note {
+  color: var(--ink-2);
+  font-size: 1rem;
+}
+
+.home .urgent {
+  padding-left: 1.1rem;
+  border-left: 4px solid var(--signal);
+  font-weight: 600;
+}
+
+.home .steps {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.home .steps li {
+  position: relative;
+  padding-left: 3.1rem;
+  counter-increment: step;
+}
+
+.home .steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -0.1rem;
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--chart);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.home .steps .flow-title {
+  display: block;
+  font-weight: 800;
+}
+
+.home .eye-surgery img,
+.home .about-figure img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.home figcaption {
+  margin-top: 0.6rem;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+
+/* The cataract slider. */
+.home .site-slider {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.home .site-slider-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  background: var(--ink);
+}
+
+.home .site-slider-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.06);
+  transition: filter var(--t1) linear;
+}
+
+.home .site-slider-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 72% 18%, rgb(255 244 214 / 0.95), rgb(255 244 214 / 0) 66%);
+  mix-blend-mode: screen;
+  opacity: calc(var(--cloud, 0) * 0.55);
+}
+
+.home .site-slider-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.75rem;
+  margin: 0;
+  background: transparent;
+  cursor: grab;
+}
+
+.home .site-slider-range:active {
+  cursor: grabbing;
+}
+
+.home .site-slider-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ink);
+}
+
+.home .site-slider-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ink);
+}
+
+.home .site-slider-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-top: calc((6px - 1.9rem) / 2);
+  border: 4px solid var(--azure);
+  border-radius: 50%;
+  background: var(--chart);
+  box-shadow: 0 0 0 5px rgb(42 111 174 / 0.2);
+}
+
+.home .site-slider-range::-moz-range-thumb {
+  width: 1.9rem;
+  height: 1.9rem;
+  box-sizing: border-box;
+  border: 4px solid var(--azure);
+  border-radius: 50%;
+  background: var(--chart);
+  box-shadow: 0 0 0 5px rgb(42 111 174 / 0.2);
+}
+
+.home .site-slider-range:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.home .site-slider-ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.home .site-slider-caption {
+  margin-top: 0;
+}
+
+/* ---------- about ---------- */
+
+.home .about-grid {
+  display: grid;
+  gap: 2.5rem 4.5rem;
+  grid-template-areas: "text" "building" "flow" "falls";
+}
+
+.home .about-text {
+  grid-area: text;
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+}
+
+.home .about-text h2 {
+  margin-bottom: 0.5rem;
+}
+
+.home .about-building {
+  grid-area: building;
+}
+
+.home .about-flow {
+  grid-area: flow;
+}
+
+.home .about-falls {
+  grid-area: falls;
+}
+
+.home .about-flow h3 {
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 62rem) {
+  .home .about-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: "text building" "flow falls";
+    align-items: start;
+  }
+}
+
+/* ---------- insurance ---------- */
+
+.home .insurance {
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+
+.home .insurance-grid {
+  display: grid;
+  gap: 1.5rem 4.5rem;
+}
+
+.home .insurance-copy {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 52rem) {
+  .home .insurance-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+}
+
+/* ---------- visit ---------- */
+
+.home .visit-grid {
+  display: grid;
+  gap: 2.5rem 4.5rem;
+}
+
+@media (min-width: 62rem) {
+  .home .visit-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.home .visit-main h2 {
+  margin-bottom: 1.5rem;
+}
+
+.home .visit-list {
+  display: grid;
+  border-top: 1px solid var(--rule-light);
+}
+
+.home .visit-list > div {
+  display: grid;
+  gap: 0.1rem 1.5rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+@media (min-width: 40rem) {
+  .home .visit-list > div {
+    grid-template-columns: 8rem minmax(0, 1fr);
+  }
+}
+
+.home .visit-list dt {
+  color: var(--lens);
+  font-weight: 600;
+}
+
+.home .visit-list dd {
+  overflow-wrap: anywhere;
+}
+
+/* The phone number and the email are the things people tap, so they get a full size target, and a long address wraps instead of widening the page at 320 px. */
+.home .visit-list dd a,
+.home .footer address a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  overflow-wrap: anywhere;
+}
+
+.home .visit-list dd a {
+  font-weight: 600;
+}
+
+.home .visit-find {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.home .visit-find .cta {
+  justify-self: start;
+}
+
+.home .emergency {
+  padding: 1.1rem 1.25rem;
+  border-radius: 6px;
+  background: var(--chart);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.home .emergency .mark-24 {
+  --mark: var(--signal);
+}
+
+/* ---------- sign in doors ---------- */
+
+.home .doors-list .site-doors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 46rem) {
+  .home .doors-list .site-doors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* With text enlarged to 200 percent on a phone a long word may not fit a door: break it rather than scroll sideways. */
+.home .site-doors .site-door-title,
+.home .site-doors .site-door-blurb {
+  overflow-wrap: anywhere;
+}
+
+.home .site-doors .site-door {
+  display: grid;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1.5rem 1.6rem;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--chart);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--t1) linear, color var(--t1) linear;
+}
+
+.home .site-doors .site-door .site-door-title {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.home .site-doors .site-door:hover {
+  background: var(--ink);
+  color: var(--chart);
+}
+
+.home .site-doors .site-door:hover .site-door-blurb {
+  color: var(--lens);
+}
+
+.home .doors-request {
+  margin-top: 1.5rem;
+}
+
+/* ---------- footer ---------- */
+
+.home .footer {
+  padding-block: clamp(2.25rem, 5vw, 3.5rem);
+  background: var(--ink);
+  color: var(--chart);
+  font-size: 1rem;
+}
+
+.home .footer a {
+  color: var(--lens);
+}
+
+.home .footer a:hover {
+  color: var(--chart);
+}
+
+.home .footer :focus-visible {
+  outline-color: var(--lens);
+}
+
+.home .footer-grid {
+  display: grid;
+  gap: 1.75rem 3rem;
+}
+
+@media (min-width: 52rem) {
+  .home .footer-grid {
+    grid-template-columns: 1.1fr 1fr 1.2fr;
+  }
+}
+
+.home .footer-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.home .footer address {
+  display: grid;
+  gap: 0.1rem;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.home .footer .credits {
+  display: grid;
+  gap: 0.5rem;
+  color: rgb(251 253 255 / 0.78);
+  font-size: 0.9rem;
+}
+
+/* ---------- reveal on scroll: hidden only once scripts have started, so no script means no hiding ---------- */
+
+.home .site-reveal {
+  transition: opacity var(--t2) var(--ease) var(--reveal-delay, 0ms), transform var(--t2) var(--ease) var(--reveal-delay, 0ms);
+}
+
+html.js .home .site-reveal:not(.is-in) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+/* ---------- reduced motion: one block, everything off, everything visible ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .home *,
+  .home *::before,
+  .home *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  html.js .home .site-reveal:not(.is-in) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .home .site-slider-photo {
+    transform: none;
+  }
+}

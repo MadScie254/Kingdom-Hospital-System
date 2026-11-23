@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MailCheck } from "lucide-react";
-import { Logo } from "@/components/logo";
+import { HomeLogo } from "@/components/logo";
 import { api, ApiError } from "@/lib/api";
 
 export default function Forgot() {
@@ -21,9 +21,9 @@ export default function Forgot() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-brand-50 p-5">
+    <main className="grid min-h-screen place-items-center bg-brand-50 p-5">
       <div className="w-full max-w-[420px] rounded-xl border border-line bg-white p-7 sm:p-8">
-        <Logo height={52} />
+        <HomeLogo height={52} />
         {done ? (
           <div className="mt-6">
             <span className="grid h-12 w-12 place-items-center rounded-full bg-ok-50 text-ok"><MailCheck size={24} /></span>
@@ -43,6 +43,6 @@ export default function Forgot() {
           </form>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { BedDouble, Bell, CalendarDays, ChevronDown, FlaskConical, LayoutDashboard, LogOut, Menu, Pill, Receipt, RefreshCw, Search, Settings, ShieldOff, Users, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BedDouble, Bell, CalendarDays, ChevronDown, FlaskConical, Globe, LayoutDashboard, LogOut, Menu, Pill, Receipt, RefreshCw, Search, Settings, ShieldOff, Users, X } from "lucide-react";
 import clsx from "clsx";
 import { bestMatch, visibleNav, type NavGroup } from "@/lib/nav";
 import { canOpen, canRead, ROLE_LABEL, type Role } from "@/lib/access";
@@ -11,6 +11,8 @@ import { loadAll, signOut, useDB, usePending, useStatus, useUser } from "@/lib/s
 import { Avatar, ToastHost } from "./ui";
 import { Logo } from "./logo";
 import { ANCHOR, fmtDate, dayName } from "@/lib/format";
+import { PORTAL_HOME } from "@/lib/site";
+import { noticesFor, type Notice } from "@/lib/notices";
 
 function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; groups: NavGroup[]; pending: number }) {
   const pathname = usePathname();
@@ -18,7 +20,9 @@ function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; gro
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
     <nav aria-label="Main" className="flex h-full flex-col">
-      <div className="px-5 pb-2 pt-5"><Logo height={58} /></div>
+      <div className="px-5 pb-2 pt-5">
+        <Link href={PORTAL_HOME} onClick={onNavigate} aria-label="Go to the dashboard" className="inline-block rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"><Logo height={58} /></Link>
+      </div>
       <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-6">
         {groups.map((g) => (
           <div key={g.heading} className="mt-4 first:mt-1">
@@ -61,6 +65,9 @@ function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; gro
             </ul>
           </div>
         ))}
+      </div>
+      <div className="border-t border-line-2 px-3 py-3">
+        <a href="/" className="nav-link"><Globe size={17} strokeWidth={1.8} />Back to website</a>
       </div>
     </nav>
   );
@@ -115,6 +122,51 @@ function BottomNav({ role, onMore }: { role: Role | undefined; onMore: () => voi
   );
 }
 
+/**
+ * The bell. It used to be a link to the dashboard, so on the dashboard clicking it did nothing. It now opens a short list of what needs attention,
+ * each line linking to the page where it can be dealt with. Escape, a tap outside or choosing a line closes it.
+ */
+function NotificationBell({ notices }: { notices: Notice[] }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const total = notices.reduce((n, x) => n + x.count, 0);
+  useEffect(() => {
+    if (!open) return;
+    const outside = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const escape = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); box.current?.querySelector("button")?.focus(); } };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
+  }, [open]);
+  return (
+    <div ref={box} className="relative">
+      <button className="btn btn-ghost btn-icon relative" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="true" aria-label={total > 0 ? `Notifications, ${total} need attention` : "Notifications, nothing needs attention"}>
+        <Bell size={17} />
+        {total > 0 && <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-bad px-1 text-[10px] font-semibold text-white">{total}</span>}
+      </button>
+      {open && (
+        <div className="fixed inset-x-2 top-[3.75rem] z-50 overflow-hidden rounded-lg border border-line bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-11 sm:w-[19rem]" role="region" aria-label="Notifications">
+          <div className="border-b border-line-2 px-3.5 py-2 text-xs font-medium text-muted">Needs attention</div>
+          {notices.length === 0 ? (
+            <p className="px-3.5 py-4 text-[13px] text-muted">Nothing needs attention right now.</p>
+          ) : (
+            <ul>
+              {notices.map((n) => (
+                <li key={n.key}>
+                  <Link href={n.href} onClick={() => setOpen(false)} className="flex items-start gap-3 px-3.5 py-3 text-[13px] hover:bg-surface">
+                    <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-bad" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">{n.text}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NoAccess({ role }: { role: Role | undefined }) {
   return (
     <div className="card mx-auto mt-10 max-w-md p-8 text-center">
@@ -138,10 +190,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const role = user?.role;
   useEffect(() => { if (status === "unauth") router.replace("/login"); }, [status, router]);
   const groups = useMemo(() => visibleNav(role), [role]);
-  const lowStock = role === "admin" || role === "pharmacy" ? medicines.filter((m) => m.quantity <= m.reorder).length : 0;
-  const critical = role && ["admin", "doctor", "nurse", "lab"].includes(role) ? labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length : 0;
-  const alerts = lowStock + critical + (role === "admin" ? pending : 0);
-  const bellHref = role === "admin" && pending ? "/staff" : role === "lab" ? "/lab" : role === "pharmacy" ? "/pharmacy" : "/dashboard";
+  const notices = useMemo(() => noticesFor(role, {
+    pending,
+    critical: labOrders.filter((l) => l.flag === "Critical" && l.status !== "Released").length,
+    lowStock: medicines.filter((m) => m.quantity <= m.reorder).length,
+  }), [role, pending, labOrders, medicines]);
   if (status !== "ready") {
     return (
       <div className="grid min-h-screen place-items-center bg-surface p-6 text-center">
@@ -177,10 +230,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-1.5">
             <button className="btn btn-ghost btn-icon" onClick={() => loadAll()} aria-label="Refresh records"><RefreshCw size={15} /></button>
             <span className="hidden pr-3 text-xs text-muted md:block">{dayName(ANCHOR)}, {fmtDate(ANCHOR)}</span>
-            <Link href={bellHref} className="btn btn-ghost btn-icon relative" aria-label={`${alerts} items need attention`}>
-              <Bell size={17} />
-              {alerts > 0 && <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-bad px-1 text-[10px] font-semibold text-white">{alerts}</span>}
-            </Link>
+            <NotificationBell notices={notices} />
             <div className="relative">
               <button className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Account menu">
                 <Avatar name={user?.name || "User"} size={30} />
@@ -191,6 +241,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <div className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-lg border border-line bg-white py-1 shadow-xl" onMouseLeave={() => setMenu(false)}>
                   <div className="border-b border-line-2 px-3.5 py-2 text-xs text-muted [overflow-wrap:anywhere]">{user?.email}</div>
                   <Link href="/settings" onClick={() => setMenu(false)} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] hover:bg-surface"><Settings size={15} />Settings</Link>
+                  <a href="/" onClick={() => setMenu(false)} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] hover:bg-surface"><Globe size={15} />Hospital website</a>
                   <button className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] hover:bg-surface" onClick={() => signOut()}><LogOut size={15} />Sign out</button>
                 </div>
               )}

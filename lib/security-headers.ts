@@ -37,7 +37,7 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   "x-frame-options": "DENY",
   "referrer-policy": "strict-origin-when-cross-origin",
   // The app uses none of these browser features.
-  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), serial=()",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=()",
   "cross-origin-opener-policy": "same-origin",
   "cross-origin-resource-policy": "same-origin",
   "content-security-policy": ENFORCED_CSP,

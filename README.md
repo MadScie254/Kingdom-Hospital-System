@@ -20,6 +20,16 @@ Connected workflows: an invoice creates its lab requests, discharge creates the 
 * **Sign in:** staff accounts in `app_users`, passwords hashed with bcrypt inside Postgres, signed 12 hour session cookie, five failed attempts lock an email for 15 minutes. Accounts made by an administrator start with a temporary password that must be replaced at first sign in.
 * **API:** `/api/data` loads everything for the signed in user, `/api/records/*` creates, updates and deletes, `/api/actions/*` runs workflows that need several changes at once (invoice, payment, admit, transfer, discharge, pharmacy sale), `/api/hie/*` talks to SHA. Invoices, payments and SHA claims can only change through those workflows. Every change is written to `audit_log` with the user's email.
 
+## Public homepage
+
+`/` is the hospital's public page: what it does, where it is, how to call, and two ways into the portal, Hospital staff (`/login?as=staff`) and Administrator (`/login?as=admin`). The administrator door signs any other account straight back out and says which door to use. The page is prerendered, reads no database and costs no CPU per visit. A browser that holds a valid session sees Open portal instead of the doors, found with `GET /api/session`, which reads the cookie only and answers `{ signedIn, role }`.
+
+* **Words and facts.** The phone number, email, address, hours, the two doors and the menu are in `lib/site.ts`. Every other sentence is in `lib/site-content.ts`. `tests/site-copy.test.ts` checks all of it: no dashes or emojis, no prices, outcome claims or "best", and any phone number or email must be the one in `lib/site.ts`. To change the phone number, change it there and in Settings.
+* **Look.** The page body is `components/site/home-page.tsx` and its styles are `app/home.css`, all under `.home` so the portal is untouched. The font is Atkinson Hyperlegible Next (`public/fonts`, with its license) and the photos are WebP files under 120 KB in `public/images/home`. The one photo that is not the hospital's own is Webuye Falls by Galkey (CC BY-SA 4.0, Wikimedia Commons), credited in the footer from `FALLS_CREDIT`.
+* **Motion.** One easing and three durations, all removed by `prefers-reduced-motion`. With JavaScript off every section is visible, because the scroll reveal only hides things once the `js` class is on the page.
+* **Between the site and the portal.** The logo inside the portal goes to `/dashboard` for every role. The sidebar has Back to website, the account menu has Hospital website and the dashboard header has a Hospital website button. The logo on sign in, request access, forgot password and reset goes to `/`. The portal's data is not loaded on `/`.
+* **Search.** `app/page.tsx` sets the title, description, share card and Hospital structured data. `robots.txt` blocks `/api/`, `/dashboard` and `/settings`, and `sitemap.xml` lists `/`. The prerendered page uses `FALLBACK_ORIGIN` in `lib/site.ts` for its canonical address. Keep it equal to `APP_ORIGIN` in `wrangler.jsonc`; a test fails if they differ.
+
 ## Staff, roles and departments
 
 Anyone can ask for access at `/signup` with their own email, position, licence number and departments. They do not choose a password. The request stays pending and the person cannot sign in. The administrator opens **Staff accounts**, confirms the role, adjusts the departments and approves or declines. On approval the system makes a temporary password and emails it to the person, who signs in with it and must choose their own straight away. A declined person is told by email. The bell and the dashboard show how many requests are waiting. Public signup is limited to five requests an hour per connection, and the administrator's approval is the safeguard.
@@ -205,6 +215,8 @@ Run `npm run db:apply` first whenever `db/schema.sql` has changed, then deploy. 
 ## Free plan limits to know
 
 Cloudflare Workers free: 100,000 requests a day and 10 ms of CPU per request. Neon free: compute sleeps after 5 minutes idle so the first request after a quiet period is slower, 100 compute hours a month per project, 1 GB storage per project.
+
+The Worker may be 3 MiB compressed on the free plan, and every file in `public/` is inside it (`scripts/cf-build.mjs` embeds them). With the homepage photos, the share image and the font it is 2.77 MiB (`npx wrangler deploy --dry-run` prints the number), so there is about 240 KiB left. Check the dry run before adding photos, and keep each one under 120 KB.
 
 ## Brand
 

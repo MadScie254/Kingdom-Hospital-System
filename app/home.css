@@ -149,6 +149,12 @@ html:has(.home) {
   outline-color: var(--lens);
 }
 
+/* The skip link moves focus to main so the next Tab starts below the header. Main is not a control, so it gets no ring. */
+.home main:focus,
+.home main:focus-visible {
+  outline: none;
+}
+
 .home img {
   display: block;
   max-width: 100%;

@@ -6,9 +6,10 @@ const EMAIL = /^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$/;
 
 /** Email settings for administrators. The access code is never sent back. */
 export const GET = handle(async (req) => {
-  await requireUser(req, { admin: true });
+  const me = await requireUser(req, { admin: true });
   const s = sql();
-  const [cfg, log] = await s.transaction([
+  const [, cfg, log] = await s.transaction([
+    guard(s, me),
     s.query(`select key, value from app_config where key in ('mail_relay_url', 'mail_relay_token', 'alert_emails')`),
     s.query(`select id, at, to_email as "to", kind, subject, ok, error from email_log order by id desc limit 15`),
   ]);

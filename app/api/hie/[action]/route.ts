@@ -19,7 +19,11 @@ export const POST = handle<Ctx>(async (req, { params }) => {
   const body = await readBody(req, 20_000_000);
   try {
     if (plain) return ok(await plain.run(s, u, body));
-    return ok(await full!.run(await buildCtx(s, u, name), body));
+    const ctx = await buildCtx(s, u, name);
+    const out = await full!.run(ctx, body);
+    // The SHA step went through. If its audit record could not be saved the person is told, so it is not lost quietly.
+    if (ctx.audit.failed) out.result = { ...(out.result || {}), auditFailed: true };
+    return ok(out);
   } catch (e) {
     const h = toHttpError(e);
     if (h) throw h;

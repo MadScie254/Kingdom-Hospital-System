@@ -6,10 +6,12 @@ import type { Session } from "../auth";
 import type { Sql } from "../db";
 import { HttpError } from "../http";
 import { background } from "../mail";
+import { writeAudit } from "./audit";
 
 /** Facility details live in Settings. The credentials live in Worker secrets and are read here, never stored or sent to the browser. */
 export type Facility = { frCode: string; mflCode: string; kephLevel: number | null; name: string; email: string };
-export type HieCtx = { s: Sql; u: Session; api: HieApi; client: HieClient; facility: Facility; action: string };
+/** `audit.failed` counts audit writes that failed twice during this request. The route tells the user when it is not zero. */
+export type HieCtx = { s: Sql; u: Session; api: HieApi; client: HieClient; facility: Facility; action: string; audit: { failed: number } };
 
 const env = (k: string) => (process.env[k] || "").trim();
 
@@ -34,13 +36,15 @@ export async function loadFacility(s: Sql): Promise<Facility> {
   return { frCode: String(d.frCode || "").trim(), mflCode: String(d.mflCode || "").trim(), kephLevel: parseKephLevel(d.kephLevel), name: String(d.name || ""), email: String(d.email || "").trim() };
 }
 
-/** One row in hie_log per attempt. Written after the response goes out so it never slows a screen down. */
+/** One row in hie_log per attempt. Written after the response goes out so it never slows a screen down. A write that fails twice is reported, see writeAudit. */
 function logger(s: Sql, u: Session, action: string) {
   return (e: LogEntry) => {
     background(
-      s.query(
-        `insert into hie_log (actor, action, method, path, query_keys, status, ms, ok, attempt, error, request_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [u.email, action, e.method, e.path, e.queryKeys.join(","), e.status, e.ms, e.ok, e.attempt, e.error || null, e.requestId || null],
+      writeAudit(s, "hie_log", () =>
+        s.query(
+          `insert into hie_log (actor, action, method, path, query_keys, status, ms, ok, attempt, error, request_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [u.email, action, e.method, e.path, e.queryKeys.join(","), e.status, e.ms, e.ok, e.attempt, e.error || null, e.requestId || null],
+        ),
       ),
     );
   };
@@ -54,7 +58,7 @@ export async function buildCtx(s: Sql, u: Session, action: string): Promise<HieC
     { baseUrl: e.baseUrl, clientId: e.clientId, clientSecret: e.clientSecret, facilityId: e.sendFacilityHeaders && facility.frCode ? facility.frCode : undefined, facilityIdType: "fr-code" },
     { onLog: logger(s, u, action) },
   );
-  return { s, u, api: hieApi(client), client, facility, action };
+  return { s, u, api: hieApi(client), client, facility, action, audit: { failed: 0 } };
 }
 
 /** SHA's answers become API errors the screens can show. A 401 from SHA is sent as 502 so it never signs a member of staff out. */

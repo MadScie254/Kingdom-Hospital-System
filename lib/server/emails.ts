@@ -37,6 +37,11 @@ export const emails = {
     html: wrap("Nightly backup failed", ["The hospital system could not save last night's backup.", `Reason: ${esc(d.error)}`, "Open Settings, Backups and press Back up now. If it fails again, contact the person who set up the system."]),
     text: `The nightly backup failed. Reason: ${d.error}. Open Settings, Backups and press Back up now.`,
   }),
+  auditFailed: (d: { what: string; error: string }) => ({
+    subject: "A SHA audit record could not be saved",
+    html: wrap("SHA audit record not saved", ["The hospital system could not write part of its record of work done with SHA.", `Where: ${esc(d.what)}`, `Reason: ${esc(d.error)}`, "The step with SHA itself went through. Check the database connection, then look at Settings, SHA connection for gaps in the call log. DHA can ask to see that log."]),
+    text: `A SHA audit record could not be saved. Where: ${d.what}. Reason: ${d.error}. The step with SHA itself went through. Check the database connection and the call log in Settings, SHA connection.`,
+  }),
   test: () => ({
     subject: "Test email from the hospital system",
     html: wrap("Email is working", ["This is a test message. Alerts, approvals and password resets will arrive the same way."]),

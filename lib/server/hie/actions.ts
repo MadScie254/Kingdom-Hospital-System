@@ -10,6 +10,7 @@ import {
 import type { Session } from "../auth";
 import { rowOf, type Sql } from "../db";
 import { HttpError } from "../http";
+import { writeAudit } from "./audit";
 import { approvedFor, createClaim, eatDate, foldClaim, foldPreauths, interventionFromCoverage, isoNow, loadClaim, needToken, preauthList, saveClaim, saveTokens, type ClaimRow } from "./claims";
 import { buildCtx, hieConfigured, hieEnv, loadFacility, type HieCtx } from "./context";
 
@@ -91,8 +92,13 @@ async function doctorOf(s: Sql, id: unknown) {
   return { id: r.id as number, name: String(r.data.name || ""), number, body: body as Regulator, practitioner: { identificationNumber: number, regulationBody: body as Regulator } };
 }
 
-const trail = (c: HieCtx, action: string, id: string | number) =>
-  c.s.query(`insert into audit_log (actor, action, collection, record_id) values ($1, $2, 'shaClaims', $3)`, [c.u.email, `hie.${action}`, String(id)]).catch(() => {});
+/** The audit trail row for a SHA action. SHA has already acted, so a failure is reported (see writeAudit), counted for the response and never thrown. */
+const trail = async (c: HieCtx, action: string, id: string | number) => {
+  const done = await writeAudit(c.s, `audit_log hie.${action}`, () =>
+    c.s.query(`insert into audit_log (actor, action, collection, record_id) values ($1, $2, 'shaClaims', $3)`, [c.u.email, `hie.${action}`, String(id)]),
+  );
+  if (!done) c.audit.failed++;
+};
 
 // ---- what the screens read
 

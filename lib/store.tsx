@@ -154,6 +154,7 @@ export const db = {
     try {
       const r = await api<{ changes?: Record<string, Row[]>; result?: Record<string, any> }>(`/api/hie/${name}`, { method: "POST", body });
       merge(r.changes || {});
+      if (r.result?.auditFailed) toast("Done with SHA, but the audit record could not be saved. Tell an administrator.");
       return r.result ?? {};
     } catch (e) {
       if (quiet && e instanceof ApiError && e.status !== 401) return { error: e.message };

@@ -24,6 +24,6 @@ export const audit = (s: Sql, actor: string, action: string, collection: string,
 export const auditLast = (s: Sql, actor: string, action: string, collection: string, table: string) =>
   s.query(`insert into audit_log (actor, action, collection, record_id) values ($1, $2, $3, currval(pg_get_serial_sequence($4, 'id'))::text)`, [actor, action, collection, table]);
 
-/** First statement of every write. Fails the whole transaction if the user was switched off, changed role or must reset a password. */
-export const guard = (s: Sql, u: { uid: number; role: string }) =>
-  s.query(`select 1 / case when exists (select 1 from app_users where id = $1 and active and status = 'active' and role = $2 and not must_change) then 1 else 0 end as ok`, [u.uid, u.role]);
+/** First statement of every write. Fails the whole transaction if the user was switched off, changed role, must reset a password or signed in before the last password change. */
+export const guard = (s: Sql, u: { uid: number; role: string; sv?: number }) =>
+  s.query(`select 1 / case when exists (select 1 from app_users where id = $1 and active and status = 'active' and role = $2 and not must_change and coalesce(session_version, 0) = $3) then 1 else 0 end as ok`, [u.uid, u.role, u.sv ?? 0]);

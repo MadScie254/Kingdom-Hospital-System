@@ -16,7 +16,7 @@ export const POST = handle(async (req) => {
     `with t as (
        update password_resets set used_at = now() where token_hash = $1 and used_at is null and expires_at > now() returning user_id
      ), u as (
-       update app_users set password_hash = crypt($2, gen_salt('bf', 10)), must_change = false
+       update app_users set password_hash = crypt($2, gen_salt('bf', 10)), must_change = false, session_version = coalesce(session_version, 0) + 1
        where id in (select user_id from t) and active and status = 'active' returning id, email
      ), o as (
        update password_resets set used_at = now() where user_id in (select id from u) and used_at is null and token_hash <> $1

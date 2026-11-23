@@ -176,3 +176,7 @@ create table if not exists hie_events (
   applied boolean not null default false
 );
 create unique index if not exists hie_events_key on hie_events (subject_guid, to_state);
+
+-- Sessions. A cookie carries the version it was made with. Changing or resetting the password, or an administrator
+-- sending a new password, switching the account off or changing its role, raises the version and ends older cookies.
+alter table app_users add column if not exists session_version integer default 0;

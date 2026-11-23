@@ -811,7 +811,7 @@ html:has(.home) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 64% 42%;
+  object-position: 50% 50%;
   border-radius: 50%;
   outline: 2px solid var(--lens);
   outline-offset: 0.7rem;
@@ -1246,7 +1246,7 @@ html:has(.home) {
 .home .about-grid {
   display: grid;
   gap: 2.5rem 4.5rem;
-  grid-template-areas: "text" "building" "flow" "falls";
+  grid-template-areas: "text" "building" "flow" "grounds";
 }
 
 .home .about-text {
@@ -1268,8 +1268,8 @@ html:has(.home) {
   grid-area: flow;
 }
 
-.home .about-falls {
-  grid-area: falls;
+.home .about-grounds {
+  grid-area: grounds;
 }
 
 .home .about-flow h3 {
@@ -1279,7 +1279,7 @@ html:has(.home) {
 @media (min-width: 62rem) {
   .home .about-grid {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    grid-template-areas: "text building" "flow falls";
+    grid-template-areas: "text building" "flow grounds";
     align-items: start;
   }
 }

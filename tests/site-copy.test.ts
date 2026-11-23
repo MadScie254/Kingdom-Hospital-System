@@ -112,7 +112,7 @@ test("the page title and description suit a search result", () => {
 
 test("every photo has a description that says what it shows", () => {
   const entries = Object.entries(content.PHOTOS);
-  assert.deepEqual(entries.map(([k]) => k).sort(), ["building", "eye-clinic", "eye-surgery", "laboratory", "ward", "webuye-falls"]);
+  assert.deepEqual(entries.map(([k]) => k).sort(), ["building", "eye-surgery", "grounds", "laboratory", "ward"]);
   for (const [name, p] of entries) {
     assert.equal(p.src, `/images/home/${name}.webp`);
     assert.ok(p.alt.length >= 30, `${name} alt text is too short`);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DOORS, FALLS_CREDIT, NAV, NOT_ADMIN_MESSAGE, PORTAL_HOME, SITE, allowedForMode, isPublicPage, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
+import { DOORS, NAV, NOT_ADMIN_MESSAGE, PORTAL_HOME, SITE, allowedForMode, isPublicPage, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
 
 test("the phone number is shown and linked with the same digits", () => {
   assert.equal(SITE.phoneDisplay, "0742 007 277");
@@ -51,14 +51,6 @@ test("the structured data describes a hospital that is open 24 hours", () => {
     for (const d of ([] as string[]).concat(spec.dayOfWeek)) days.add(d);
   }
   assert.deepEqual([...days].sort(), ["Friday", "Monday", "Saturday", "Sunday", "Thursday", "Tuesday", "Wednesday"]);
-});
-
-test("the Webuye Falls photo is credited with its author, license, links and a note of the change", () => {
-  assert.equal(FALLS_CREDIT.author, "Galkey");
-  assert.equal(FALLS_CREDIT.license, "CC BY-SA 4.0");
-  assert.equal(FALLS_CREDIT.licenseUrl, "https://creativecommons.org/licenses/by-sa/4.0/");
-  assert.equal(FALLS_CREDIT.sourceUrl, "https://commons.wikimedia.org/wiki/File:Nabuloye_Falls.jpg");
-  assert.match(FALLS_CREDIT.change, /cropped/i);
 });
 
 test("the structured data carries no postal code, because the sources disagree on it", () => {

@@ -19,16 +19,6 @@ export const SITE = {
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Kingdom+Faith+Based+Hospital+Malaha+Webuye",
 } as const;
 
-/** The one photo on the page that is not the hospital's own. CC BY-SA 4.0 asks for the author, the license, a link to it and a note of any change. */
-export const FALLS_CREDIT = {
-  title: "Webuye Falls",
-  author: "Galkey",
-  license: "CC BY-SA 4.0",
-  licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
-  sourceUrl: "https://commons.wikimedia.org/wiki/File:Nabuloye_Falls.jpg",
-  change: "Cropped and resized",
-} as const;
-
 /**
  * The address the Worker is hosted at. It must equal APP_ORIGIN in wrangler.jsonc (a test checks that).
  * The homepage is prerendered at build time, where the Worker's own variables are not set, so its search tags use this unless APP_ORIGIN is in the build environment.

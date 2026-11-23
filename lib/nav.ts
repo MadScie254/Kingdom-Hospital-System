@@ -60,8 +60,18 @@ export const NAV: NavGroup[] = [
   },
 ];
 
+/**
+ * The menu a role sees. A child page can be stricter than its parent (everyone who opens Patients does not open Payments),
+ * or looser (accounts opens Payments but not the patient list), so a group is shown with the children the role can open, and dropped when none are.
+ * A link that leads to "not part of your access" is a bug people can see.
+ */
 export function visibleNav(role: Role | undefined): NavGroup[] {
-  return NAV.map((g) => ({ ...g, items: g.items.filter((i) => canOpen(role, i.href)) })).filter((g) => g.items.length);
+  return NAV.map((g) => ({
+    ...g,
+    items: g.items
+      .map((i) => (i.children ? { ...i, children: i.children.filter((c) => canOpen(role, c.href)) } : i))
+      .filter((i) => (i.children ? i.children.length > 0 : canOpen(role, i.href))),
+  })).filter((g) => g.items.length);
 }
 
 export const ALL_HREFS = NAV.flatMap((g) => g.items.flatMap((i) => [i.href, ...(i.children || []).map((c) => c.href)]));

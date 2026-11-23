@@ -70,7 +70,7 @@ export default function NewInvoice() {
   return (
     <div>
       <PageHeader title={editNo ? `Edit invoice ${editNo}` : "New invoice"} crumbs={[{ label: "Billing", href: "/billing" }, { label: editNo ? "Edit invoice" : "New invoice" }]} description="Search the item list, adjust quantities and take a deposit in one step. Lab tests go straight to the laboratory worklist." />
-      <div className="grid items-start gap-5 xl:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_340px]">
         <div className="space-y-5">
           <section className="card card-pad">
             <h2 className="card-title mb-4">Patient and visit</h2>

@@ -126,7 +126,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
         <section className="card">
           <div className="card-head"><h2 className="card-title">Needs attention</h2></div>
           {attention.length === 0 ? <p className="px-5 py-8 text-center text-[13px] text-muted">Nothing needs attention right now.</p> : (
@@ -167,7 +167,7 @@ export default function Dashboard() {
       </div>
 
       {(can("visits") || can("shaClaims")) && (
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
           {can("visits") && (
             <section className="card">
               <div className="card-head"><h2 className="card-title">Leading diagnoses</h2><span className="text-xs text-muted">All consultations on record</span></div>

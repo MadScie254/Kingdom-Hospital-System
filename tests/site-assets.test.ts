@@ -5,9 +5,10 @@ import { test } from "node:test";
 
 const dir = join(process.cwd(), "public", "images", "home");
 const kb = (p: string) => statSync(p).size / 1024;
-const PHOTOS = ["building", "eye-clinic", "eye-surgery", "ward", "laboratory"];
+// Five are the hospital's own photos from the old site. webuye-falls is the landmark photo by Galkey, CC BY-SA 4.0, credited on the page.
+const PHOTOS = ["building", "eye-clinic", "eye-surgery", "ward", "laboratory", "webuye-falls"];
 
-test("the five hospital photos exist as WebP and each is light enough for a phone", () => {
+test("the six photos exist as WebP and each is light enough for a phone", () => {
   for (const name of PHOTOS) {
     const file = join(dir, `${name}.webp`);
     assert.ok(existsSync(file), `${name}.webp is missing`);
@@ -20,12 +21,12 @@ test("nothing else is hiding in the photo folder", () => {
   assert.deepEqual(extra, []);
 });
 
-test("the share image is under 150 KB and the photos together are under 450 KB", () => {
+test("the share image is under 150 KB and the photos together are under 520 KB", () => {
   const og = join(process.cwd(), "public", "og.jpg");
   assert.ok(existsSync(og), "og.jpg is missing");
   assert.ok(kb(og) < 150, `og.jpg is ${Math.round(kb(og))} KB`);
   const total = PHOTOS.reduce((sum, name) => sum + (existsSync(join(dir, `${name}.webp`)) ? kb(join(dir, `${name}.webp`)) : 0), 0);
-  assert.ok(total < 450, `the photos weigh ${Math.round(total)} KB together`);
+  assert.ok(total < 520, `the photos weigh ${Math.round(total)} KB together`);
 });
 
 test("the typeface is self hosted as one latin file with its license beside it", () => {

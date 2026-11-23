@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FALLS_CREDIT, PORTAL_HOME, SITE, allowedForMode, jsonLd, loginMode } from "../lib/site";
+import { DOORS, FALLS_CREDIT, NAV, PORTAL_HOME, SITE, allowedForMode, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
 
 test("the phone number is shown and linked with the same digits", () => {
   assert.equal(SITE.phoneDisplay, "0742 007 277");
@@ -63,4 +63,29 @@ test("the Webuye Falls photo is credited with its author, license, links and a n
 test("the structured data carries no postal code, because the sources disagree on it", () => {
   const ld = jsonLd("https://h.example") as Record<string, any>;
   assert.equal(ld.address.postalCode, undefined);
+});
+
+test("each sign in door links to the login page set to that door", () => {
+  assert.deepEqual(DOORS.map((d) => d.mode), ["staff", "admin"]);
+  for (const d of DOORS) {
+    const url = new URL(d.href, "https://h.example");
+    assert.equal(url.pathname, "/login");
+    assert.equal(loginMode(url.search), d.mode, `${d.href} must open the ${d.mode} door`);
+    assert.ok(d.title.length > 0 && d.blurb.length >= 20, `${d.mode} door has a title and a sentence`);
+  }
+});
+
+test("the menu sections are the ids the page uses, in reading order, with no repeats", () => {
+  assert.deepEqual(NAV.map((n) => n.id), ["services", "eye-care", "about", "insurance", "visit"]);
+  assert.equal(new Set(NAV.map((n) => n.id)).size, NAV.length);
+  for (const n of NAV) assert.match(n.id, /^[a-z]+(-[a-z]+)*$/);
+});
+
+test("the session answer is trusted only when it says signedIn is exactly true", () => {
+  assert.deepEqual(parseSessionAnswer({ signedIn: true, role: "nurse" }), { signedIn: true, role: "nurse" });
+  assert.deepEqual(parseSessionAnswer({ signedIn: true }), { signedIn: true, role: "" });
+  const signedOut = { signedIn: false, role: "" };
+  for (const bad of [null, undefined, "yes", 1, [], {}, { signedIn: "true" }, { signedIn: 1 }, { signedIn: false, role: "admin" }]) {
+    assert.deepEqual(parseSessionAnswer(bad), signedOut, JSON.stringify(bad));
+  }
 });

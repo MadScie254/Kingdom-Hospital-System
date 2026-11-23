@@ -44,6 +44,35 @@ export function allowedForMode(mode: LoginMode, role: string): boolean {
   return mode === "admin" ? role === "admin" : true;
 }
 
+/** The menu sections, in reading order. The header links to these ids and the page puts the same ids on its sections. */
+export const NAV = [
+  { id: "services", label: "Services" },
+  { id: "eye-care", label: "Eye care" },
+  { id: "about", label: "About" },
+  { id: "insurance", label: "Insurance" },
+  { id: "visit", label: "Visit us" },
+] as const;
+
+/** The two ways in. Each links to the login page set to that door, and `loginMode` reads the same word back. */
+export const DOORS: ReadonlyArray<{ mode: LoginMode; href: string; title: string; blurb: string }> = [
+  { mode: "staff", href: "/login?as=staff", title: "Hospital staff", blurb: "Doctors, nurses, reception, laboratory, pharmacy and accounts sign in here." },
+  { mode: "admin", href: "/login?as=admin", title: "Administrator", blurb: "Hospital managers and system administrators sign in here." },
+];
+
+/** What the doors turn into when the browser already holds a valid session. */
+export const OPEN_PORTAL = { title: "Open portal", blurb: "You are signed in. Go to your dashboard." } as const;
+
+export type SessionAnswer = { signedIn: boolean; role: string };
+
+/** Reads the answer of `GET /api/session`. Only `signedIn: true` counts. Anything else, including garbage, means signed out. */
+export function parseSessionAnswer(value: unknown): SessionAnswer {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const v = value as Record<string, unknown>;
+    if (v.signedIn === true) return { signedIn: true, role: typeof v.role === "string" ? v.role : "" };
+  }
+  return { signedIn: false, role: "" };
+}
+
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 /** Structured data for search engines. No postal code: the old site and the hospital's own records disagree on it. */

@@ -23,19 +23,21 @@ files.forEach((f, i) => {
   const url = "/" + relative(assets, f).split("\\").join("/");
   copyFileSync(f, join(out, String(i)));
   imports += `import d${i} from "./embedded/${i}";\n`;
-  map += `  ${JSON.stringify(url)}: [d${i}, ${JSON.stringify(types[extname(f)] || "application/octet-stream")}, ${url.startsWith("/_next/static/")}],\n`;
+  map += `  ${JSON.stringify(url)}: [d${i}, ${JSON.stringify(types[extname(f)] || "application/octet-stream")}],\n`;
 });
 writeFileSync(join(root, "embedded-assets.mjs"), `${imports}export const ASSETS = {\n${map}};\n`);
 writeFileSync(join(root, "embedded-worker.mjs"), `import worker from "./worker.js";
 import { ASSETS } from "./embedded-assets.mjs";
 import { withSecurityHeaders } from "../lib/security-headers.ts";
+import { cacheControl } from "../scripts/static-cache.mjs";
 export * from "./worker.js";
 async function serve(request, env, ctx) {
   if (request.method === "GET" || request.method === "HEAD") {
-    const hit = ASSETS[new URL(request.url).pathname];
+    const path = new URL(request.url).pathname;
+    const hit = ASSETS[path];
     if (hit) {
       return new Response(request.method === "HEAD" ? null : hit[0], {
-        headers: { "content-type": hit[1], "cache-control": hit[2] ? "public, max-age=31536000, immutable" : "public, max-age=3600" },
+        headers: { "content-type": hit[1], "cache-control": cacheControl(path) },
       });
     }
   }

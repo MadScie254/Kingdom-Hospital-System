@@ -719,6 +719,26 @@ html:has(.home) {
   --k: 4.2;
 }
 
+/* A browser without container units (older than 2022) would show every row at the same size. Approximate the chart with the screen width instead. */
+@supports not (width: 1cqw) {
+  .home .chart-row {
+    font-size: max(1.2rem, calc(var(--k) * 0.86vw));
+  }
+
+  .home .chart-acuity {
+    font-size: 0.8rem;
+  }
+}
+
+@supports not (width: 1cqw) {
+  @media (min-width: 57.5rem) {
+    .home .chart-row {
+      /* The chart column stops growing at about 660 px, so the size does too. */
+      font-size: min(max(1.2rem, calc(var(--k) * 0.5vw)), calc(var(--k) * 6.6px));
+    }
+  }
+}
+
 .home .chart-text {
   min-width: 0;
 }

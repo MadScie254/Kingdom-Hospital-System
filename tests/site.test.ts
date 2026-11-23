@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DOORS, FALLS_CREDIT, NAV, PORTAL_HOME, SITE, allowedForMode, isPublicPage, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
+import { DOORS, FALLS_CREDIT, NAV, NOT_ADMIN_MESSAGE, PORTAL_HOME, SITE, allowedForMode, isPublicPage, jsonLd, loginMode, parseSessionAnswer } from "../lib/site";
 
 test("the phone number is shown and linked with the same digits", () => {
   assert.equal(SITE.phoneDisplay, "0742 007 277");
@@ -95,4 +95,10 @@ test("only the homepage is a public page that must not load the portal's data", 
   for (const p of ["/login", "/signup", "/forgot", "/reset", "/dashboard", "/settings", "/api/data", "", "/index", "//"]) {
     assert.equal(isPublicPage(p), false, p);
   }
+});
+
+test("the administrator door tells a staff account which door to use, in plain words", () => {
+  assert.equal(NOT_ADMIN_MESSAGE, "That account is not an administrator. Choose Hospital staff to sign in.");
+  assert.ok(NOT_ADMIN_MESSAGE.includes(DOORS.find((d) => d.mode === "staff")!.title), "names the staff door exactly as the switch labels it");
+  assert.ok(!/[\u2013\u2014]| - /.test(NOT_ADMIN_MESSAGE));
 });

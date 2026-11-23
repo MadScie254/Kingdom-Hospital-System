@@ -49,6 +49,9 @@ export function loginMode(search: string): LoginMode {
   return new URLSearchParams(search).get("as") === "admin" ? "admin" : "staff";
 }
 
+/** Shown after the administrator door signs a non administrator account straight back out. The title matches the staff door's label on the switch. */
+export const NOT_ADMIN_MESSAGE = "That account is not an administrator. Choose Hospital staff to sign in.";
+
 /** The staff door lets every account in. The administrator door only lets an administrator in. */
 export function allowedForMode(mode: LoginMode, role: string): boolean {
   return mode === "admin" ? role === "admin" : true;

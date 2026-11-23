@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { BedDouble, Bell, CalendarDays, ChevronDown, FlaskConical, LayoutDashboard, LogOut, Menu, Pill, Receipt, RefreshCw, Search, Settings, ShieldOff, Users, X } from "lucide-react";
+import { BedDouble, Bell, CalendarDays, ChevronDown, FlaskConical, Globe, LayoutDashboard, LogOut, Menu, Pill, Receipt, RefreshCw, Search, Settings, ShieldOff, Users, X } from "lucide-react";
 import clsx from "clsx";
 import { bestMatch, visibleNav, type NavGroup } from "@/lib/nav";
 import { canOpen, canRead, ROLE_LABEL, type Role } from "@/lib/access";
@@ -11,6 +11,7 @@ import { loadAll, signOut, useDB, usePending, useStatus, useUser } from "@/lib/s
 import { Avatar, ToastHost } from "./ui";
 import { Logo } from "./logo";
 import { ANCHOR, fmtDate, dayName } from "@/lib/format";
+import { PORTAL_HOME } from "@/lib/site";
 
 function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; groups: NavGroup[]; pending: number }) {
   const pathname = usePathname();
@@ -18,7 +19,9 @@ function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; gro
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
     <nav aria-label="Main" className="flex h-full flex-col">
-      <div className="px-5 pb-2 pt-5"><Logo height={58} /></div>
+      <div className="px-5 pb-2 pt-5">
+        <Link href={PORTAL_HOME} onClick={onNavigate} aria-label="Go to the dashboard" className="inline-block rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"><Logo height={58} /></Link>
+      </div>
       <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-6">
         {groups.map((g) => (
           <div key={g.heading} className="mt-4 first:mt-1">
@@ -61,6 +64,9 @@ function Sidebar({ onNavigate, groups, pending }: { onNavigate?: () => void; gro
             </ul>
           </div>
         ))}
+      </div>
+      <div className="border-t border-line-2 px-3 py-3">
+        <a href="/" className="nav-link"><Globe size={17} strokeWidth={1.8} />Back to website</a>
       </div>
     </nav>
   );
@@ -191,6 +197,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <div className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-lg border border-line bg-white py-1 shadow-xl" onMouseLeave={() => setMenu(false)}>
                   <div className="border-b border-line-2 px-3.5 py-2 text-xs text-muted [overflow-wrap:anywhere]">{user?.email}</div>
                   <Link href="/settings" onClick={() => setMenu(false)} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] hover:bg-surface"><Settings size={15} />Settings</Link>
+                  <a href="/" onClick={() => setMenu(false)} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] hover:bg-surface"><Globe size={15} />Hospital website</a>
                   <button className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] hover:bg-surface" onClick={() => signOut()}><LogOut size={15} />Sign out</button>
                 </div>
               )}

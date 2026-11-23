@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, ClipboardCheck, ShieldCheck, Smartphone } from "lucide-react";
 import clsx from "clsx";
-import { Logo } from "@/components/logo";
+import { HomeLogo } from "@/components/logo";
 import { api, ApiError } from "@/lib/api";
 import { POSITIONS } from "@/lib/access";
 
@@ -37,7 +37,7 @@ export default function Signup() {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_1.1fr]">
       <section className="hidden bg-brand-50 p-12 lg:flex lg:flex-col lg:justify-between">
-        <Logo height={84} />
+        <HomeLogo height={84} />
         <div className="max-w-md">
           <h1 className="text-[32px] font-semibold leading-[1.15]">Join the Kingdom care team.</h1>
           <ol className="mt-8 space-y-6">
@@ -60,7 +60,7 @@ export default function Signup() {
           </div>
         ) : (
           <form className="w-full max-w-[460px]" onSubmit={submit}>
-            <div className="mb-6 lg:hidden"><Logo height={56} /></div>
+            <div className="mb-6 lg:hidden"><HomeLogo height={56} /></div>
             <h2 className="text-2xl font-semibold">Request access</h2>
             <p className="mt-1.5 text-[13px] text-muted">Use your own email address. The approval and your temporary password are sent to it.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">

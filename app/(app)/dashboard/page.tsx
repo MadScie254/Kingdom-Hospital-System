@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Activity, AlertTriangle, BedDouble, CalendarCheck, CalendarPlus, FlaskConical, Pill, Receipt, ShieldAlert, Siren, UserCheck, UserPlus, Users, Wallet } from "lucide-react";
+import { Activity, AlertTriangle, BedDouble, CalendarCheck, CalendarPlus, FlaskConical, Globe, Pill, Receipt, ShieldAlert, Siren, UserCheck, UserPlus, Users, Wallet } from "lucide-react";
 import { PageHeader, Stat, Status, Avatar } from "@/components/ui";
 import { usePending, useDB, useLookup, useUser } from "@/lib/store";
 import { ACTION_ROLES, canRead, canWrite, ROLE_LABEL } from "@/lib/access";
@@ -85,6 +85,7 @@ export default function Dashboard() {
     <div>
       <PageHeader title={`Welcome back, ${first}`} description={`${dayName(ANCHOR)}, ${fmtDate(ANCHOR)}. ${role ? `Signed in as ${ROLE_LABEL[role].toLowerCase()}.` : ""}`}
         actions={<>
+          <a href="/" className="btn btn-ghost"><Globe size={16} />Hospital website</a>
           {canWrite(role, "patients") && <Link href="/patients/new" className="btn btn-secondary"><UserPlus size={16} />Register patient</Link>}
           {canWrite(role, "appointments") && <Link href="/appointments" className="btn btn-secondary"><CalendarPlus size={16} />Book appointment</Link>}
           {billing && <Link href="/billing/new" className="btn btn-primary"><Receipt size={16} />New invoice</Link>}

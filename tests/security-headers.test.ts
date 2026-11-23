@@ -58,3 +58,11 @@ test("things that are not reports are ignored", () => {
   assert.equal(describeReport({}), null);
   assert.equal(describeReport([1, 2]), null);
 });
+
+test("the permissions policy names only features Chrome knows, so it does not log an error on every page", () => {
+  // Chrome prints "Error with Permissions-Policy header: Unrecognized feature" for a name it does not support (bluetooth was one).
+  const known = new Set(["camera", "microphone", "geolocation", "payment", "usb", "serial"]);
+  const names = SECURITY_HEADERS["permissions-policy"].split(",").map((part) => part.trim().split("=")[0]);
+  for (const name of names) assert.ok(known.has(name), `${name} is not a feature Chrome recognises`);
+  assert.ok(names.includes("camera") && names.includes("microphone") && names.includes("geolocation"), "the three the README promises stay off");
+});

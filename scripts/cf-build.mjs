@@ -2,15 +2,11 @@
    without the separate assets upload, then writes the entry file that serves them and adds the security headers. */
 import { copyFileSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { extname, join, relative } from "node:path";
+import { types } from "./mime-types.mjs";
 
 const root = ".open-next";
 const assets = join(root, "assets");
 const out = join(root, "embedded");
-const types = {
-  ".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png",
-  ".woff2": "font/woff2", ".woff": "font/woff", ".ico": "image/x-icon", ".json": "application/json", ".txt": "text/plain; charset=utf-8",
-  ".map": "application/json", ".html": "text/html; charset=utf-8", ".webmanifest": "application/manifest+json",
-};
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });

@@ -33,7 +33,8 @@ export const PATCH = handle<{ params: Promise<{ id: string }> }>(async (req, { p
          approved_by = case when $5::text = 'active' and status <> 'active' then $9 else approved_by end,
          approved_at = case when $5::text = 'active' and status <> 'active' then now() else approved_at end,
          password_hash = case when $10::text is null then password_hash else crypt($10, gen_salt('bf', 10)) end,
-         must_change = case when $10::text is null then must_change else true end
+         must_change = case when $10::text is null then must_change else true end,
+         session_version = coalesce(session_version, 0) + case when $10::text is not null or ($3::text is not null and $3::text <> role) or $4::boolean is false or ($5::text is not null and $5::text <> status) then 1 else 0 end
        where id = $1 returning ${COLUMNS}`,
       [id, b.name ? String(b.name).slice(0, 120) : null, role, typeof b.active === "boolean" ? b.active : null, status, departments, b.position ? String(b.position).slice(0, 80) : null, b.phone !== undefined ? String(b.phone).slice(0, 40) : null, me.email, temp],
     ),

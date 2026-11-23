@@ -65,6 +65,20 @@ export const HIE_ROLES: Record<"lookup" | "claim" | "admin", Role[]> = {
   admin: ["admin"],
 };
 
+/**
+ * The settings record holds the hospital's public details, its finance details and the SHA facility codes.
+ * Everyone gets the public details (they print on documents). The finance and SHA fields go only to the desks that
+ * use them. The administrator gets the whole record.
+ */
+const SETTINGS_PUBLIC = ["id", "name", "tagline", "address", "phone", "email", "registration", "footer", "currency", "timeFormat"];
+const SETTINGS_DESK = ["kra", "vat", "discount", "mpesaPaybill", "mpesaAccount", "bank", "mflCode", "frCode", "kephLevel"];
+export const SETTINGS_DESK_ROLES: Role[] = ["admin", "accounts", "reception"];
+export function settingsFor<T extends Record<string, any>>(role: Role | undefined, row: T): Partial<T> {
+  if (role === "admin") return row;
+  const keep = new Set<string>([...SETTINGS_PUBLIC, ...(role && SETTINGS_DESK_ROLES.includes(role) ? SETTINGS_DESK : [])]);
+  return Object.fromEntries(Object.entries(row).filter(([k]) => keep.has(k))) as Partial<T>;
+}
+
 export const canRead = (role: Role | undefined, c: CollectionName) => !!role && (READ[role] === "*" || (READ[role] as CollectionName[]).includes(c));
 export const canWrite = (role: Role | undefined, c: CollectionName) => !!role && (WRITE[role] === "*" || (WRITE[role] as CollectionName[]).includes(c));
 

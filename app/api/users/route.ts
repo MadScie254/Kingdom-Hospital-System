@@ -7,8 +7,10 @@ import { makeTempPassword, originOf, sendMail } from "@/lib/server/mail";
 const COLUMNS = `id, email, name, role, active, status, departments, position, phone, licence, requested_role as "requestedRole", requested_at as "requestedAt", last_login_at as "lastLoginAt", must_change as "mustChange"`;
 
 export const GET = handle(async (req) => {
-  await requireUser(req, { admin: true });
-  return ok({ users: await sql().query(`select ${COLUMNS} from app_users order by (status = 'pending') desc, id`) });
+  const me = await requireUser(req, { admin: true });
+  const s = sql();
+  const [, users] = await s.transaction([guard(s, me), s.query(`select ${COLUMNS} from app_users order by (status = 'pending') desc, id`)]);
+  return ok({ users });
 });
 
 /** Administrator creates an account. The server makes a temporary password and emails it. It is shown to the administrator only if the email could not be sent. */

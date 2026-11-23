@@ -9,7 +9,7 @@ import { fmtDateTime } from "@/lib/format";
 type Log = { id: number; at: string; to: string; kind: string; subject: string; ok: boolean; error: string | null };
 type Status = { configured: boolean; hasUrl: boolean; hasToken: boolean; hint: string; alerts: string[]; sendingTo: string[]; log: Log[] };
 
-const KIND: Record<string, string> = { access_request: "Access request alert", credentials: "Temporary password", declined: "Declined notice", reset: "Password reset", backup_failed: "Backup alert", test: "Test message" };
+const KIND: Record<string, string> = { access_request: "Access request alert", credentials: "Temporary password", declined: "Declined notice", reset: "Password reset", backup_failed: "Backup alert", audit_failed: "SHA audit alert", test: "Test message" };
 const eat = (t: string) => fmtDateTime(new Date(Date.parse(t) + 3 * 3600e3).toISOString().slice(0, 16));
 const message = (e: unknown) => (e instanceof ApiError ? e.message : "Could not reach the server.");
 const makeCode = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");

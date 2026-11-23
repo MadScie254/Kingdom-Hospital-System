@@ -1,5 +1,5 @@
 /* Run after `opennextjs-cloudflare build`. Embeds the static files into the worker bundle so it deploys
-   without the separate assets upload, then writes the entry file that serves them. */
+   without the separate assets upload, then writes the entry file that serves them and adds the security headers. */
 import { copyFileSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 
@@ -32,18 +32,23 @@ files.forEach((f, i) => {
 writeFileSync(join(root, "embedded-assets.mjs"), `${imports}export const ASSETS = {\n${map}};\n`);
 writeFileSync(join(root, "embedded-worker.mjs"), `import worker from "./worker.js";
 import { ASSETS } from "./embedded-assets.mjs";
+import { withSecurityHeaders } from "../lib/security-headers.ts";
 export * from "./worker.js";
-export default {
-  async fetch(request, env, ctx) {
-    if (request.method === "GET" || request.method === "HEAD") {
-      const hit = ASSETS[new URL(request.url).pathname];
-      if (hit) {
-        return new Response(request.method === "HEAD" ? null : hit[0], {
-          headers: { "content-type": hit[1], "cache-control": hit[2] ? "public, max-age=31536000, immutable" : "public, max-age=3600" },
-        });
-      }
+async function serve(request, env, ctx) {
+  if (request.method === "GET" || request.method === "HEAD") {
+    const hit = ASSETS[new URL(request.url).pathname];
+    if (hit) {
+      return new Response(request.method === "HEAD" ? null : hit[0], {
+        headers: { "content-type": hit[1], "cache-control": hit[2] ? "public, max-age=31536000, immutable" : "public, max-age=3600" },
+      });
     }
-    return worker.fetch(request, env, ctx);
+  }
+  return worker.fetch(request, env, ctx);
+}
+export default {
+  // Every response, static file or app page or API answer, leaves with the security headers from lib/security-headers.ts.
+  async fetch(request, env, ctx) {
+    return withSecurityHeaders(await serve(request, env, ctx));
   },
   // Nightly at 21:00 UTC, which is midnight in Nairobi. Calls the backup route with the cron secret and
   // leaves a note in KV (cron/last-run, cron/last-result, cron/last-error) so a silent failure can be found.

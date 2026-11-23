@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { COLLECTIONS, TABLE } from "../collections";
+import { backupSelect, backupTables } from "./backup-tables";
 import { sql } from "./db";
 import { emails } from "./emails";
 import { HttpError } from "./http";
@@ -15,12 +15,9 @@ export async function runBackup(trigger: "nightly" | "manual") {
   try { kv = ((getCloudflareContext() as any).env as { BACKUPS?: KV }).BACKUPS; } catch { kv = undefined; }
   if (!kv) throw new HttpError(501, "Backups run on the hosted site only.");
   const s = sql();
-  const tables = [...COLLECTIONS.map((c) => TABLE[c]), "app_users", "audit_log"];
   try {
-    // SHA visit references are needed to carry on with open claims after a restore. The table exists once the schema has been applied.
-    const [hie] = await s.query(`select to_regclass('public.hie_consents') as t`);
-    if (hie?.t) tables.push("hie_consents");
-    const results = await s.transaction(tables.map((t) => s.query(t === "audit_log" ? `select * from audit_log where at > now() - interval '90 days'` : `select * from "${t}"`)));
+    const tables = await backupTables((text, params) => s.query(text, params as any[]));
+    const results = await s.transaction(tables.map((t) => s.query(backupSelect(t))));
     const day = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
     let rows = 0, bytes = 0, parts = 0;
     for (let i = 0; i < tables.length; i++) {

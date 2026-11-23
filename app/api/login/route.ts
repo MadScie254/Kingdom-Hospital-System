@@ -8,7 +8,7 @@ export const POST = handle(async (req) => {
   const s = sql();
   const [attempts, found] = await s.transaction([
     s.query(`select count(*)::int as n from login_attempts where lower(email) = lower($1) and ok = false and at > now() - interval '15 minutes'`, [email]),
-    s.query(`select id, email, name, role, status, active from app_users where lower(email) = lower($1) and password_hash = crypt($2, password_hash)`, [email, password]),
+    s.query(`select id, email, name, role, status, active, coalesce(session_version, 0) as sv from app_users where lower(email) = lower($1) and password_hash = crypt($2, password_hash)`, [email, password]),
   ]);
   if (attempts[0].n >= 5) throw new HttpError(429, "Too many failed attempts. Wait 15 minutes and try again.");
   const user = found[0];

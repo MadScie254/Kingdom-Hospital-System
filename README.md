@@ -24,7 +24,7 @@ Connected workflows: an invoice creates its lab requests, discharge creates the 
 
 Anyone can ask for access at `/signup` with their own email, position, licence number and departments. They do not choose a password. The request stays pending and the person cannot sign in. The administrator opens **Staff accounts**, confirms the role, adjusts the departments and approves or declines. On approval the system makes a temporary password and emails it to the person, who signs in with it and must choose their own straight away. A declined person is told by email. The bell and the dashboard show how many requests are waiting. Public signup is limited to five requests an hour per connection, and the administrator's approval is the safeguard.
 
-Roles: `admin`, `doctor`, `nurse`, `lab`, `pharmacy`, `reception`, `accounts`, `staff`. Access follows the role, not the department. `lib/access.ts` lists which screens, record types and workflows each role may use, and Staff accounts shows the same rules as a table. The server enforces it: a role is never sent the records it may not read, and its writes are refused. The screens and the phone tab bar hide what a role cannot use. Changing a role or switching an account off takes effect on that person's next action.
+Roles: `admin`, `doctor`, `nurse`, `lab`, `pharmacy`, `reception`, `accounts`, `staff`. Access follows the role, not the department. `lib/access.ts` lists which screens, record types and workflows each role may use, and Staff accounts shows the same rules as a table. The server enforces it: a role is never sent the records it may not read, and its writes are refused. The screens and the phone tab bar hide what a role cannot use. Changing a role or switching an account off takes effect on that person's next action. Sessions also carry a version (`app_users.session_version`). Changing a password, a reset by email link, an administrator sending a new password, switching an account off or changing its role raises the version and ends every sign in that account already has, so a stolen cookie stops working. The browser that changed its own password stays signed in. Roles other than administrator, accounts and front desk are sent only the hospital's name, address, contact details, registration and footer from Settings, never the KRA PIN, Paybill, bank details or SHA codes.
 
 | Role | Can use |
 | --- | --- |
@@ -79,6 +79,7 @@ Credentials and tokens:
 * The client id, client secret and address are read only from Worker secrets (`DHA_CLIENT_ID`, `DHA_CLIENT_SECRET`, `DHA_BASE_URL`). They are never stored in the database or sent to the browser.
 * SHA's consent token for each visit is kept in `hie_consents`, a table no screen reads. The browser only ever sees the claim's own id.
 * `hie_log` keeps one row per request to SHA (who, path, answer code, time) as evidence for certification. It never keeps query values, names, ID numbers, one time codes or tokens. Settings, SHA connection shows the latest rows.
+* SHA has already acted when these audit rows are written, so a failed write never fails the step. It is tried twice. If it still fails the person sees a warning that the audit record was not saved, the Worker log gets a `hie audit write failed` line, and the alert addresses get an email (at most one every 30 minutes).
 
 Setting it up:
 
@@ -113,9 +114,15 @@ starts a local stand in for the UAT API on port 4600. Run the app with `DHA_BASE
 
 What is not covered yet: consent by fingerprint (a facility that SHA marks as biometrics enforced cannot start visits here), resubmitting a claim that SHA sent back, and the FHIR eClaims bundles (the REST middleware is used instead). ICD-11 codes are never worked out from ICD-10. They are typed, searched in the terminology service when `DHA_ICD11_SOURCE` is set, or taken from the hospital's own diagnosis list, where a code is saved once a search result matches a diagnosis name exactly.
 
+## Security headers
+
+Every response from the Worker, pages, API answers and static files, carries HSTS, `X-Content-Type-Options`, `X-Frame-Options: DENY`, a referrer policy, a permissions policy that switches off the camera, microphone and location, and cross origin opener and resource policies. They are added in the Worker entry that `scripts/cf-build.mjs` writes, from `lib/security-headers.ts`, so they cannot be missed by a route.
+
+A Content Security Policy is sent in two parts. The enforced part only has directives that cannot break the app (no framing, no plugins, base and form targets limited to this site). The full policy (`default-src 'self'`, so nothing loads from or sends data to another site) is sent as `Content-Security-Policy-Report-Only`, and browsers post violations to `/api/csp-report`, which writes one short line each to the Worker log (at most 30 a minute, page path and blocked origin only). After a normal week of use with no lines, move the full policy to the enforcing header in `lib/security-headers.ts`.
+
 ## Backups
 
-A Cloudflare cron trigger runs `/api/backup` every night at 21:00 UTC, which is midnight in Nairobi. It copies every table into Cloudflare KV (`BACKUPS`) and keeps each copy for 35 days. Settings, Backups shows the history and has a Back up now button. The worker also leaves `cron/last-run`, `cron/last-result` and `cron/last-error` in KV so a failed run can be found.
+A Cloudflare cron trigger runs `/api/backup` every night at 21:00 UTC, which is midnight in Nairobi. It copies every table into Cloudflare KV (`BACKUPS`) and keeps each copy for 35 days. The SHA tables are included once the schema has them: `hie_consents` (needed to carry on with open claims), `hie_events`, and `hie_log` for the last 400 days, which is the record of every call to SHA that DHA can ask to see. Settings, Backups shows the history and has a Back up now button. The worker also leaves `cron/last-run`, `cron/last-result` and `cron/last-error` in KV so a failed run can be found.
 
 To see what a backup holds, or restore one:
 
@@ -183,7 +190,7 @@ Deletes every patient and other record, keeps staff accounts. Run this before re
 npm run cf:deploy
 ```
 
-Needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment. Set the secrets once with `npx wrangler secret put DATABASE_URL`, `npx wrangler secret put AUTH_SECRET` and `npx wrangler secret put CRON_SECRET`, and the three `DHA_` secrets described above when SHA credentials arrive.
+Run `npm run db:apply` first whenever `db/schema.sql` has changed, then deploy. The code reads columns that the schema adds, so deploying first would stop everyone signing in until the schema is applied. Needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment. Set the secrets once with `npx wrangler secret put DATABASE_URL`, `npx wrangler secret put AUTH_SECRET` and `npx wrangler secret put CRON_SECRET`, and the three `DHA_` secrets described above when SHA credentials arrive.
 
 `scripts/cf-build.mjs` embeds the static files in the worker so no separate assets upload is needed. The worker is about 2 MiB compressed, inside the 3 MiB free plan limit.
 
